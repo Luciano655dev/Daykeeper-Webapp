@@ -1,0 +1,153 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import Link from "next/link"
+import { Chrome } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { authClient } from "@/lib/authClient"
+
+import FormShell from "@/components/Form/FormShell"
+import FormLogo from "@/components/Form/FormLogo"
+import FormCard from "@/components/Form/FormCard"
+import FormHeader from "@/components/Form/FormHeader"
+import FormField from "@/components/Form/FormField"
+import FormButton from "@/components/Form/FormButton"
+import FormDivider from "@/components/Form/FormDivider"
+import FormSocialButton from "@/components/Form/FormSocialButton"
+import FormFooterLinks from "@/components/Form/FormFooterLinks"
+import FormLegalLinks from "@/components/Form/FormLegalLinks"
+import FormAlert from "@/components/Form/FormAlert"
+
+export default function LoginPage() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const message = params.get("message")
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const canSubmit = useMemo(() => {
+    return email.trim().length > 3 && password.trim().length >= 1 && !loading
+  }, [email, password, loading])
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    const cleanEmail = email.trim() // not lowercase since it can also be username
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: cleanEmail, password }),
+      })
+
+      const data = await res.json().catch(() => null)
+
+      // better: use a code, but keeping your current check
+      if (data?.error?.includes("Email not verified")) {
+        router.push(`/confirm-email?email=${encodeURIComponent(cleanEmail)}`)
+        return
+      }
+
+      if (!res.ok) {
+        setError(data?.error || "Invalid email or password")
+        return
+      }
+
+      const token = data?.accessToken as string | undefined
+      console.log(data)
+      if (!token) {
+        setError("Login succeeded but no access token was returned.")
+        return
+      }
+
+      authClient.setAccessToken(token)
+      router.push("/")
+    } catch {
+      setError("Network error. Try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const successText =
+    message === "email-confirmed"
+      ? "Email confirmed successfully. You can log in now."
+      : message === "account-created"
+      ? "Account created successfully. Check your email for the code."
+      : message === "password-reset"
+      ? "Password updated successfully. You can log in now."
+      : null
+
+  return (
+    <FormShell>
+      <FormLogo />
+
+      <FormCard>
+        <FormHeader title="Welcome back" subtitle="Log in to your account" />
+
+        <form className="space-y-4" onSubmit={onSubmit}>
+          {successText ? (
+            <FormAlert type="success">{successText}</FormAlert>
+          ) : null}
+
+          <FormField
+            label="Email"
+            inputProps={{
+              type: "text",
+              autoComplete: "email",
+              placeholder: "you@example.com",
+              value: email,
+              onChange: (e) => setEmail(e.currentTarget.value),
+            }}
+          />
+
+          <FormField
+            label="Password"
+            rightSlot={
+              <Link
+                href="/forgot-password"
+                className="text-xs hover:underline"
+                style={{ color: "#334155" }}
+              >
+                Forgot?
+              </Link>
+            }
+            inputProps={{
+              type: "password",
+              autoComplete: "current-password",
+              placeholder: "Your password",
+              value: password,
+              onChange: (e) => setPassword(e.currentTarget.value),
+            }}
+          />
+
+          {error ? <FormAlert>{error}</FormAlert> : null}
+
+          <FormButton type="submit" disabled={!canSubmit}>
+            {loading ? "Logging in..." : "Log in"}
+          </FormButton>
+
+          <FormDivider />
+
+          <FormSocialButton icon={<Chrome size={18} />} onClick={() => {}}>
+            Continue with Google
+          </FormSocialButton>
+        </form>
+      </FormCard>
+
+      <FormFooterLinks
+        text="New here?"
+        linkText="Create an account"
+        href="/register"
+      />
+      <FormLegalLinks />
+    </FormShell>
+  )
+}
