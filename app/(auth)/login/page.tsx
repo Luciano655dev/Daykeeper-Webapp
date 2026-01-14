@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Chrome } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { authClient } from "@/lib/authClient"
+import { queryClient } from "@/lib/queryClient"
 
 import FormShell from "@/components/Form/FormShell"
 import FormLogo from "@/components/Form/FormLogo"
@@ -66,6 +67,8 @@ export default function LoginPage() {
         return
       }
 
+      await queryClient.cancelQueries()
+      queryClient.clear()
       authClient.setAccessToken(token)
       router.push("/")
     } catch {

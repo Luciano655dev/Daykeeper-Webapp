@@ -17,7 +17,6 @@ export default function AuthLoading() {
           alt="Daykeeper"
           width={64}
           height={64}
-          className="w-auto h-auto"
           priority
         />
 

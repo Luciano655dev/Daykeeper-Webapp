@@ -4,4 +4,6 @@ export const brand = {
   slate: "#334155",
   mist: "#EAF2FF",
   paper: "#FFFFFF",
+  error: "7F1D1D",
+  success: "166534",
 }

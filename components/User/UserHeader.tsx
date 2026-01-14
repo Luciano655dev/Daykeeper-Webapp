@@ -10,9 +10,12 @@ import {
   Lock,
   Globe,
   Pencil,
+  MoreVertical,
 } from "lucide-react"
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
+import { useRouter } from "next/navigation"
+import UserActionsMenu from "@/components/User/UserActionsMenu"
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
@@ -29,6 +32,7 @@ export default function ProfileHeader({ user }: { user: any }) {
   const handle = String(user?.username || user?.username || user?.name || "")
 
   const bio = String(user?.bio || "").trim()
+  const initialInCloseFriends = !!user?.isInCloseFriends
 
   // --- optimistic follow state ---
   const initialFollowing = !!user?.isFollowing
@@ -39,20 +43,17 @@ export default function ProfileHeader({ user }: { user: any }) {
 
   const [isFollowing, setIsFollowing] = useState<boolean>(initialFollowing)
   const [followers, setFollowers] = useState<number>(initialFollowers)
-  const [followingCount] = useState<number>(initialFollowingCount) // you probably don't want to change this on follow toggle
+  const [followingCount] = useState<number>(initialFollowingCount)
   const [busy, setBusy] = useState(false)
 
-  // tiny animation flag
   const [pulse, setPulse] = useState(false)
 
-  // keep local state in sync if a different user loads
   useEffect(() => {
     setIsFollowing(!!user?.isFollowing)
     setFollowers(Number.isFinite(user?.followers) ? user.followers : 0)
   }, [user?._id])
 
   const followEndpoint = useMemo(() => {
-    // route: /:name/follow
     return `${API_URL}/${encodeURIComponent(handle)}/follow`
   }, [handle])
 
@@ -62,7 +63,6 @@ export default function ProfileHeader({ user }: { user: any }) {
     const prevFollowing = isFollowing
     const prevFollowers = followers
 
-    // optimistic UI update
     const next = !prevFollowing
     setIsFollowing(next)
     setFollowers((c) => {
@@ -70,27 +70,17 @@ export default function ProfileHeader({ user }: { user: any }) {
       return next ? base + 1 : Math.max(0, base - 1)
     })
 
-    // trigger micro animation
     setPulse(true)
     window.setTimeout(() => setPulse(false), 180)
 
     setBusy(true)
     try {
-      const res = await apiFetch(followEndpoint, {
-        method: "POST",
-      })
-
+      const res = await apiFetch(followEndpoint, { method: "POST" })
       if (!res.ok) {
         const text = await res.text().catch(() => "")
         throw new Error(text || `Request failed (${res.status})`)
       }
-
-      // optional: if your API returns updated counts, you can sync here:
-      // const json = await res.json().catch(() => null)
-      // if (json?.data?.followers != null) setFollowers(json.data.followers)
-      // if (json?.data?.isFollowing != null) setIsFollowing(!!json.data.isFollowing)
     } catch {
-      // revert on failure
       setIsFollowing(prevFollowing)
       setFollowers(prevFollowers)
     } finally {
@@ -100,9 +90,7 @@ export default function ProfileHeader({ user }: { user: any }) {
 
   return (
     <header className="px-4 pt-5 pb-4">
-      {/* top block */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
-        {/* left: avatar + identity */}
         <div className="flex items-start gap-4 min-w-0 flex-1">
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-(--dk-mist)/40">
             <Image
@@ -128,8 +116,8 @@ export default function ProfileHeader({ user }: { user: any }) {
           </div>
         </div>
 
-        {/* right: action button */}
-        <div className="sm:ml-auto">
+        {/* right actions: follow + 3 dots */}
+        <div className="sm:ml-auto flex items-center gap-2">
           <ActionButton
             isSelf={isSelf}
             isFollowing={isFollowing}
@@ -137,10 +125,16 @@ export default function ProfileHeader({ user }: { user: any }) {
             pulse={pulse}
             onClick={toggleFollow}
           />
+
+          <UserActionsMenu
+            userKey={String(user?._id || handle)}
+            name={handle}
+            disabled={busy || isSelf}
+            initialInCloseFriends={initialInCloseFriends}
+          />
         </div>
       </div>
 
-      {/* bio */}
       <div className="mt-3">
         {bio ? (
           <p className="text-sm text-(--dk-ink)/85 leading-relaxed">{bio}</p>
@@ -149,7 +143,6 @@ export default function ProfileHeader({ user }: { user: any }) {
         )}
       </div>
 
-      {/* stats (responsive wrap) */}
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-(--dk-slate)">
         <Stat icon={Users} value={followers} label="followers" />
         <Stat icon={UserPlus} value={followingCount} label="following" />
@@ -200,7 +193,6 @@ function ActionButton({
     )
   }
 
-  // micro animation on change (scale pop)
   const pop = pulse ? "scale-[1.03]" : "scale-100"
 
   if (isFollowing) {

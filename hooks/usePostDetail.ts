@@ -49,6 +49,7 @@ async function fetchPostDetail(postId: string): Promise<PostDetailResult> {
     time: "",
     content: String(raw.data || ""),
     media: Array.isArray(raw.media) ? raw.media : [],
+    privacy: raw.privacy,
     likes: raw.likes ?? 0,
     comments: raw.comments ?? 0,
     userLiked: !!raw.userLiked,

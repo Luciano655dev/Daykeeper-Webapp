@@ -17,6 +17,7 @@ export default function UserDayPosts({ posts }: { posts: any[] }) {
             content: p.data,
             media: p.media,
             likes: p.likes,
+            privacy: p.privacy,
             userLiked: p.userLiked,
             comments: p.comments,
             userCommented: !!p.userCommented && p.userCommented !== false,

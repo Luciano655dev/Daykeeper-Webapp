@@ -1,12 +1,21 @@
 "use client"
 
 import { useMemo, useState, useRef, useEffect } from "react"
-import { Clock, Heart, MessageCircle, MoreHorizontal, Flag } from "lucide-react"
+import {
+  Clock,
+  Heart,
+  MessageCircle,
+  MoreHorizontal,
+  Flag,
+  Lock,
+  Users,
+} from "lucide-react"
 import type { FeedPost } from "@/lib/feedTypes"
 import FeedPostMediaStrip from "./FeedPostMediaStrip"
 import { apiFetch } from "@/lib/authClient"
 import { useRouter } from "next/navigation"
 import ReportPostModal from "./ReportPostModal"
+import PrivacyChip from "@/components/common/PrivacyChip"
 import { API_URL } from "@/config"
 
 type Props = {
@@ -18,6 +27,7 @@ export default function FeedPostItem({ post, isLast }: Props) {
   const [liked, setLiked] = useState(!!post.userLiked)
   const [likesCount, setLikesCount] = useState<number>(post.likes ?? 0)
   const [likeBusy, setLikeBusy] = useState(false)
+  console.log(post)
 
   const router = useRouter()
   const postId = useMemo(() => post.id, [post.id])
@@ -114,6 +124,8 @@ export default function FeedPostItem({ post, isLast }: Props) {
             <span className="text-xs font-medium text-(--dk-slate)">
               {post.time || ""}
             </span>
+
+            <PrivacyChip privacy={post.privacy} />
           </div>
 
           {/* ... menu */}

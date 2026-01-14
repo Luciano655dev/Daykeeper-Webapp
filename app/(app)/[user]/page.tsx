@@ -38,7 +38,7 @@ export default function UserPage() {
   return (
     <main className="pb-20 lg:pb-0">
       <div className="max-w-2xl mx-auto border-x border-(--dk-ink)/10 bg-(--dk-paper) min-h-screen">
-        <div className="sticky top-0 bg-(--dk-paper)/95 backdrop-blur-md z-100">
+        <div className="sticky top-0 bg-(--dk-paper)/95 backdrop-blur-md z-50">
           <div className="h-1 w-full bg-(--dk-sky)/70" />
           <div className="px-4 py-3 flex items-center gap-3">
             <button

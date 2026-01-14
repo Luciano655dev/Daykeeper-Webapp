@@ -22,13 +22,15 @@ type CommentsResponse = {
   totalPages?: number
 }
 
+const PAGE_SIZE = 10
+
 async function fetchCommentsPage(
   postId: string,
   page: number
 ): Promise<CommentsResponse> {
   const qs = new URLSearchParams({
     page: String(page),
-    maxPageSize: "10",
+    maxPageSize: String(PAGE_SIZE),
   })
 
   const res = await apiFetch(
@@ -54,12 +56,23 @@ export function usePostComments(postId: string | undefined) {
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       fetchCommentsPage(String(postId), Number(pageParam)),
+
     getNextPageParam: (lastPage) => {
       const page = lastPage?.page ?? 1
       const totalPages = lastPage?.totalPages
-      if (!totalPages) return page + 1 // if API doesn’t send totalPages, keep trying
-      return page < totalPages ? page + 1 : undefined
+      const count = Array.isArray(lastPage?.data) ? lastPage!.data!.length : 0
+
+      // If API gives totalPages, trust it
+      if (typeof totalPages === "number") {
+        return page < totalPages ? page + 1 : undefined
+      }
+
+      // If totalPages is missing, stop when the server returns less than PAGE_SIZE
+      return count < PAGE_SIZE ? undefined : page + 1
     },
+
+    // optional but helps reduce UI thrash
+    refetchOnWindowFocus: false,
   })
 
   const items = useMemo(() => {
@@ -68,7 +81,10 @@ export function usePostComments(postId: string | undefined) {
   }, [q.data])
 
   const loadMore = useCallback(() => {
-    if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage()
+    // super strict guard
+    if (!q.hasNextPage) return
+    if (q.isFetching || q.isFetchingNextPage) return
+    q.fetchNextPage()
   }, [q])
 
   const reload = useCallback(() => {

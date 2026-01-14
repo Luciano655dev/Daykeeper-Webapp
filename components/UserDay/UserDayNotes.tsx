@@ -4,6 +4,7 @@ import { StickyNote, Clock } from "lucide-react"
 import SeeMoreList from "./SeeMoreList"
 import UserDayListRow from "./UserDayListRow"
 import SeeMoreRow from "./SeeMoreRow"
+import PrivacyChip from "@/components/common/PrivacyChip"
 
 function formatTime(s?: string) {
   if (!s) return ""
@@ -31,9 +32,13 @@ export default function UserDayNotes({
               leftIcon={<StickyNote size={18} />}
               title={<span className="whitespace-pre-wrap">{n.text}</span>}
               metaTop={
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock size={12} />
-                  {formatTime(n.dateLocal || n.date)}
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock size={12} />
+                    {formatTime(n.dateLocal || n.date)}
+                  </span>
+
+                  <PrivacyChip privacy={n.privacy} />
                 </span>
               }
             />

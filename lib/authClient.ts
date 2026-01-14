@@ -1,3 +1,5 @@
+import { queryClient } from "@/lib/queryClient"
+
 let accessToken: string | null = null
 let refreshing: Promise<string | null> | null = null
 
@@ -11,6 +13,8 @@ export function getAccessToken() {
 
 async function logoutClient(reason?: string) {
   setAccessToken(null)
+  await queryClient.cancelQueries()
+  queryClient.clear()
 
   try {
     await fetch("/api/auth/logout", {
@@ -55,11 +59,7 @@ function mergeHeaders(initHeaders?: HeadersInit): Headers {
   return h
 }
 
-/**
- * apiFetch
- * - Uses access token (in memory) to call Node
- * - On 401: refresh once via /api/auth/refresh and retry once
- */
+// Use APi (ONLY for Post/Put/Delete) Use query for GET
 export async function apiFetch(url: string, init: RequestInit = {}) {
   const doFetch = () =>
     fetch(url, {

@@ -4,6 +4,7 @@ import { CheckSquare2, Square, Clock, ClipboardList } from "lucide-react"
 import SeeMoreList from "./SeeMoreList"
 import UserDayListRow from "./UserDayListRow"
 import SeeMoreRow from "./SeeMoreRow"
+import PrivacyChip from "@/components/common/PrivacyChip"
 
 function formatTime(s?: string) {
   if (!s) return ""
@@ -55,9 +56,13 @@ export default function UserDayTasks({
                 showLane
                 leftIcon={<ClipboardList size={22} />}
                 metaTop={
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock size={12} />
-                    {formatTime(t.dateLocal || t.date)}
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock size={12} />
+                      {formatTime(t.dateLocal || t.date)}
+                    </span>
+
+                    <PrivacyChip privacy={t.privacy} />
                   </span>
                 }
                 title={

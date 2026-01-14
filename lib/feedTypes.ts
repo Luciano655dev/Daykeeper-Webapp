@@ -18,10 +18,10 @@ export type FeedPost = {
   time?: string
   date?: string
   content: string
+  privacy: String
 
   media?: FeedMedia[]
 
-  emotion?: number
   likes?: number
   comments?: number
   userLiked?: boolean
@@ -53,7 +53,7 @@ export function normalizeFeedPayload(json: any): FeedUserDay[] {
           time: p.time,
           date: p.date,
           content: String(p.content ?? p.data ?? ""),
-          emotion: p.emotion,
+          privacy: p.privacy,
           media: Array.isArray(p.media)
             ? p.media.map((m: any) => ({
                 _id: String(m._id ?? ""),

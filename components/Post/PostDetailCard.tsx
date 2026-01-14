@@ -8,6 +8,7 @@ import { apiFetch } from "@/lib/authClient"
 import type { FeedPost } from "@/lib/feedTypes"
 import { API_URL } from "@/config"
 import { useRouter } from "next/navigation"
+import PrivacyChip from "@/components/common/PrivacyChip"
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
@@ -147,11 +148,19 @@ export default function PostDetailCard({ post, user, postedAt }: Props) {
 
             {/* timestamp like twitter */}
             {stamp ? (
-              <div className="mt-1 flex items-center gap-2 text-xs text-(--dk-slate)">
-                <Clock size={12} />
-                <span>{stamp}</span>
+              <div className="mt-1 flex items-center gap-2 flex-wrap text-xs text-(--dk-slate)">
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock size={12} />
+                  <span>{stamp}</span>
+                </span>
+
+                <PrivacyChip privacy={post.privacy} />
               </div>
-            ) : null}
+            ) : (
+              <div className="mt-1">
+                <PrivacyChip privacy={post.privacy} />
+              </div>
+            )}
           </div>
         </div>
 

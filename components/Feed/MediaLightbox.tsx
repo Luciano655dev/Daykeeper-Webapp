@@ -87,7 +87,7 @@ export default function MediaLightbox({
   return (
     // BACKDROP (click closes)
     <div
-      className="fixed inset-0 z-100 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
       onClick={(e) => {
         e.preventDefault()
         e.stopPropagation()

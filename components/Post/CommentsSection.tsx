@@ -10,6 +10,17 @@ export default function CommentsSection({ postId }: { postId: string }) {
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
+  // refs to avoid recreating observer all the time
+  const hasMoreRef = useRef(hasMore)
+  const loadingRef = useRef(loading)
+  const loadingMoreRef = useRef(loadingMore)
+
+  useEffect(() => {
+    hasMoreRef.current = hasMore
+    loadingRef.current = loading
+    loadingMoreRef.current = loadingMore
+  }, [hasMore, loading, loadingMore])
+
   useEffect(() => {
     const el = sentinelRef.current
     if (!el) return
@@ -17,16 +28,20 @@ export default function CommentsSection({ postId }: { postId: string }) {
     const io = new IntersectionObserver(
       (entries) => {
         const first = entries[0]
-        if (first.isIntersecting) {
-          if (hasMore && !loading && !loadingMore) loadMore()
-        }
+        if (!first?.isIntersecting) return
+
+        if (!hasMoreRef.current) return
+        if (loadingRef.current) return
+        if (loadingMoreRef.current) return
+
+        loadMore()
       },
-      { root: null, rootMargin: "500px", threshold: 0 }
+      { root: null, rootMargin: "600px", threshold: 0 }
     )
 
     io.observe(el)
     return () => io.disconnect()
-  }, [hasMore, loadMore, loading, loadingMore])
+  }, [loadMore])
 
   return (
     <section className="border-t border-(--dk-ink)/10">
@@ -57,13 +72,13 @@ export default function CommentsSection({ postId }: { postId: string }) {
 
       {items.map((c, idx) => (
         <CommentItem
-          key={`${c.user?._id || "u"}-${idx}-${c.created_at}`}
+          key={`${c.user?._id || "u"}-${c.created_at}-${idx}`}
           c={c}
         />
       ))}
 
       {/* sentinel for infinite scroll */}
-      <div ref={sentinelRef} />
+      <div ref={sentinelRef} className="h-px w-full" />
 
       {loadingMore && (
         <div className="px-4 py-4 text-sm text-(--dk-slate)">Loading more…</div>
