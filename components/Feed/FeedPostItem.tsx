@@ -27,7 +27,6 @@ export default function FeedPostItem({ post, isLast }: Props) {
   const [liked, setLiked] = useState(!!post.userLiked)
   const [likesCount, setLikesCount] = useState<number>(post.likes ?? 0)
   const [likeBusy, setLikeBusy] = useState(false)
-  console.log(post)
 
   const router = useRouter()
   const postId = useMemo(() => post.id, [post.id])

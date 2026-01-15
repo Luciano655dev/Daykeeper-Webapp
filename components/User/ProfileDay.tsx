@@ -11,7 +11,7 @@ import UserDayNotes from "@/components/UserDay/UserDayNotes"
 import UserDayEvents from "@/components/UserDay/UserDayEvents"
 import UserDayPosts from "@/components/UserDay/UserDayPosts"
 
-import { useProfileDay } from "@/hooks/useProfilePosts"
+import { useProfileDay } from "@/hooks/useProfileDay"
 import { isSameDay, parseDDMMYYYY, startOfDay, toDDMMYYYY } from "@/lib/date"
 
 type Props = {
@@ -26,7 +26,6 @@ export default function ProfileDaySections({ username, className }: Props) {
 
   const urlDateParam = searchParams.get("date")
 
-  // local UI state for header display
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search)
@@ -37,10 +36,41 @@ export default function ProfileDaySections({ username, className }: Props) {
     return startOfDay(new Date())
   })
 
-  const { loading, error, tasks, notes, events, posts } = useProfileDay(
-    username,
-    urlDateParam
-  )
+  const {
+    loading,
+    error,
+    stats,
+
+    tasks,
+    notes,
+    events,
+    posts,
+
+    tasksMeta,
+    notesMeta,
+    eventsMeta,
+    postsMeta,
+
+    loadMoreTasks,
+    loadMoreNotes,
+    loadMoreEvents,
+    loadMorePosts,
+
+    hasMoreTasks,
+    hasMoreNotes,
+    hasMoreEvents,
+    hasMorePosts,
+
+    loadingMoreTasks,
+    loadingMoreNotes,
+    loadingMoreEvents,
+    loadingMorePosts,
+
+    collapseTasks,
+    collapseNotes,
+    collapseEvents,
+    collapsePosts,
+  } = useProfileDay(username, urlDateParam)
 
   const setDate = useCallback(
     (d: Date) => {
@@ -55,7 +85,6 @@ export default function ProfileDaySections({ username, className }: Props) {
     [router, pathname, searchParams]
   )
 
-  // sync selectedDate if URL changes (back/forward, manual edits)
   useEffect(() => {
     if (!urlDateParam) return
     const parsed = parseDDMMYYYY(urlDateParam)
@@ -66,7 +95,6 @@ export default function ProfileDaySections({ username, className }: Props) {
     )
   }, [urlDateParam])
 
-  // ensure URL always has ?date=...
   useEffect(() => {
     if (typeof window === "undefined") return
 
@@ -92,12 +120,12 @@ export default function ProfileDaySections({ username, className }: Props) {
     [selectedDate]
   )
 
-  // counts for header (you can change this to just posts if you want)
+  // Use real totals from API when available (posts totalCount too)
   const entriesCount =
-    (tasks?.length ?? 0) +
-    (notes?.length ?? 0) +
-    (events?.length ?? 0) +
-    (posts?.length ?? 0)
+    (stats?.tasksCount ?? tasks.length) +
+    (stats?.notesCount ?? notes.length) +
+    (stats?.eventsCount ?? events.length) +
+    (postsMeta?.totalCount ?? posts.length)
 
   return (
     <section className={className}>
@@ -108,7 +136,7 @@ export default function ProfileDaySections({ username, className }: Props) {
         isToday={isToday}
         loading={loading}
         error={error}
-        usersCount={entriesCount} // rename inside header later if you want
+        usersCount={entriesCount}
         onRetry={() => setDate(selectedDate)}
       />
 
@@ -122,20 +150,52 @@ export default function ProfileDaySections({ username, className }: Props) {
 
       {!loading && !error && (
         <>
-          <UserDaySection title="Tasks" count={tasks.length}>
-            <UserDayTasks tasks={tasks} />
+          <UserDaySection title="Tasks" count={stats?.tasksCount ?? 0}>
+            <UserDayTasks
+              tasks={tasks}
+              pagination={tasksMeta}
+              hasMore={hasMoreTasks}
+              loadingMore={loadingMoreTasks}
+              onLoadMore={loadMoreTasks}
+              onCollapse={collapseTasks}
+            />
           </UserDaySection>
 
-          <UserDaySection title="Notes" count={notes.length}>
-            <UserDayNotes notes={notes} />
+          <UserDaySection title="Notes" count={stats?.notesCount ?? 0}>
+            <UserDayNotes
+              notes={notes}
+              pagination={notesMeta}
+              hasMore={hasMoreNotes}
+              loadingMore={loadingMoreNotes}
+              onLoadMore={loadMoreNotes}
+              onCollapse={collapseNotes}
+            />
           </UserDaySection>
 
-          <UserDaySection title="Events" count={events.length}>
-            <UserDayEvents events={events} />
+          <UserDaySection title="Events" count={stats?.eventsCount ?? 0}>
+            <UserDayEvents
+              events={events}
+              pagination={eventsMeta}
+              hasMore={hasMoreEvents}
+              loadingMore={loadingMoreEvents}
+              onLoadMore={loadMoreEvents}
+              onCollapse={collapseEvents}
+            />
           </UserDaySection>
 
-          <UserDaySection title="Posts" count={posts.length}>
-            <UserDayPosts posts={posts} />
+          {/* UPDATED: posts now use infinite scroll props */}
+          <UserDaySection
+            title="Posts"
+            count={postsMeta?.totalCount ?? posts.length}
+          >
+            <UserDayPosts
+              posts={posts}
+              pagination={postsMeta}
+              hasMore={hasMorePosts}
+              loadingMore={loadingMorePosts}
+              onLoadMore={loadMorePosts}
+              onCollapse={collapsePosts}
+            />
           </UserDaySection>
         </>
       )}

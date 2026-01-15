@@ -22,7 +22,6 @@ export default function FeedUserDayCard({ userDay, selectedDate }: any) {
   function openDay() {
     // you can decide your route format later
     // example: /day/2026-01-07?user=USER_ID
-    router.push(`/day/2026-01-07?user=${userDay.user_info._id}`)
     router.push(
       `/day/${userDay.user_info.username}?date=${toDayParam(selectedDate)}`
     )

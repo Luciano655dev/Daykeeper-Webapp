@@ -1,3 +1,6 @@
+// =====================================
+// FILE: app/.../UserDayPage.tsx (page)
+// =====================================
 "use client"
 
 import { useMemo } from "react"
@@ -22,13 +25,46 @@ export default function UserDayPage() {
   const searchParams = useSearchParams()
 
   const todayParam = useMemo(() => toDDMMYYYY(new Date()), [])
-
   const dateParam = useMemo(() => {
     const qp = searchParams.get("date")
     return qp && qp.includes("-") ? qp : todayParam
   }, [searchParams, todayParam])
 
-  const { loading, error, day, posts } = useUserDay(String(username), dateParam)
+  const {
+    loading,
+    error,
+    user,
+    stats,
+    tasks,
+    notes,
+    events,
+    posts,
+
+    tasksMeta,
+    notesMeta,
+    eventsMeta,
+    postsMeta,
+
+    loadMoreTasks,
+    loadMoreNotes,
+    loadMoreEvents,
+    loadMorePosts,
+
+    hasMoreTasks,
+    hasMoreNotes,
+    hasMoreEvents,
+    hasMorePosts,
+
+    loadingMoreTasks,
+    loadingMoreNotes,
+    loadingMoreEvents,
+    loadingMorePosts,
+
+    collapseTasks,
+    collapseNotes,
+    collapseEvents,
+    collapsePosts,
+  } = useUserDay(String(username), dateParam)
 
   return (
     <main className="pb-20 lg:pb-0">
@@ -69,29 +105,56 @@ export default function UserDayPage() {
           <div className="px-4 py-6 text-sm text-red-500">{error}</div>
         )}
 
-        {!loading && !error && day && (
+        {!loading && !error && user && (
           <>
-            <UserDayHeader user={day.user} nameFallback={String(username)} />
+            <UserDayHeader user={user} nameFallback={String(username)} />
+            <UserDayStatsBar stats={stats} entriesCount={posts?.length ?? 0} />
 
-            <UserDayStatsBar
-              stats={day.stats}
-              entriesCount={posts?.length ?? 0}
-            />
-
-            <UserDaySection title="Tasks" count={day.tasks?.length || 0}>
-              <UserDayTasks tasks={day.tasks} />
+            <UserDaySection title="Tasks" count={stats.tasksCount || 0}>
+              <UserDayTasks
+                tasks={tasks}
+                pagination={tasksMeta}
+                hasMore={hasMoreTasks}
+                loadingMore={loadingMoreTasks}
+                onLoadMore={loadMoreTasks}
+                onCollapse={collapseTasks}
+              />
             </UserDaySection>
 
-            <UserDaySection title="Notes" count={day.notes?.length || 0}>
-              <UserDayNotes notes={day.notes} />
+            <UserDaySection title="Notes" count={stats.notesCount || 0}>
+              <UserDayNotes
+                notes={notes}
+                pagination={notesMeta}
+                hasMore={hasMoreNotes}
+                loadingMore={loadingMoreNotes}
+                onLoadMore={loadMoreNotes}
+                onCollapse={collapseNotes}
+              />
             </UserDaySection>
 
-            <UserDaySection title="Events" count={day.events?.length || 0}>
-              <UserDayEvents events={day.events} />
+            <UserDaySection title="Events" count={stats.eventsCount || 0}>
+              <UserDayEvents
+                events={events}
+                pagination={eventsMeta}
+                hasMore={hasMoreEvents}
+                loadingMore={loadingMoreEvents}
+                onLoadMore={loadMoreEvents}
+                onCollapse={collapseEvents}
+              />
             </UserDaySection>
 
-            <UserDaySection title="Posts" count={posts?.length || 0}>
-              <UserDayPosts posts={posts} />
+            <UserDaySection
+              title="Posts"
+              count={postsMeta.totalCount || posts.length}
+            >
+              <UserDayPosts
+                posts={posts}
+                hasMore={hasMorePosts}
+                loadingMore={loadingMorePosts}
+                onLoadMore={loadMorePosts}
+                pagination={postsMeta}
+                onCollapse={collapsePosts}
+              />
             </UserDaySection>
           </>
         )}

@@ -1,30 +1,34 @@
+// =====================================
+// FILE: hooks/useUserDay.ts
+// =====================================
 "use client"
 
 import { useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
 
-type ApiOk<T> = { code?: number; message?: string; data: T }
+type ApiUserOk = { message?: string; data: any }
 
-export type DayResponse = {
-  user: any
-  date: string
-  timeZone: string
-  stats: { notesCount: number; tasksCount: number; eventsCount: number }
-  tasks: any[]
-  notes: any[]
-  events: any[]
+export type PaginationMeta = {
+  page: number
+  pageSize: number
+  maxPageSize: number
+  totalPages: number
+  totalCount: number
 }
 
-type PostsResponse = {
-  message?: string
-  data: any[]
-}
-
-type UserDayBundle = {
-  day: DayResponse
-  posts: any[]
+type PagedData<T> = {
+  data: T[]
+  page: number
+  pageSize: number
+  maxPageSize: number
+  totalPages: number
+  totalCount: number
 }
 
 function safeApiMessage(err: any) {
@@ -35,72 +39,362 @@ function safeApiMessage(err: any) {
   }
 }
 
-async function fetchUserDayBundle(
+async function readJsonSafe<T>(res: Response): Promise<T | null> {
+  try {
+    return (await res.json()) as T
+  } catch {
+    return null
+  }
+}
+
+async function fetchUser(username: string) {
+  const res = await apiFetch(`${API_URL}/${encodeURIComponent(username)}`, {
+    method: "GET",
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
+    throw new Error(
+      text || JSON.stringify({ message: `User failed (${res.status})` })
+    )
+  }
+
+  const json = await readJsonSafe<ApiUserOk>(res)
+  const user = json?.data
+  if (!user)
+    throw new Error(JSON.stringify({ message: "User payload missing data" }))
+  return user
+}
+
+function makeDayEndpoint(
+  kind: "task" | "note" | "event",
   username: string,
   dateParam: string
-): Promise<UserDayBundle> {
-  const [dayRes, postsRes] = await Promise.all([
-    apiFetch(
-      `${API_URL}/day/${encodeURIComponent(username)}?date=${encodeURIComponent(
-        dateParam
-      )}`,
-      { method: "GET", cache: "no-store" }
-    ),
-    apiFetch(
-      `${API_URL}/${encodeURIComponent(username)}/posts/${encodeURIComponent(
-        dateParam
-      )}`,
-      { method: "GET", cache: "no-store" }
-    ),
-  ])
+) {
+  return `${API_URL}/day/${kind}/${encodeURIComponent(
+    username
+  )}/${encodeURIComponent(dateParam)}`
+}
 
-  if (!dayRes.ok) {
-    const text = await dayRes.text().catch(() => "")
+// tasks/notes/events paged fetch (meta at top level, list at json.data)
+async function fetchPagedKind<T>(
+  kind: "task" | "note" | "event",
+  username: string,
+  dateParam: string,
+  page: number,
+  maxPageSize: number
+): Promise<PagedData<T>> {
+  const qs = new URLSearchParams({
+    page: String(page),
+    maxPageSize: String(maxPageSize),
+  })
+
+  const res = await apiFetch(
+    `${makeDayEndpoint(kind, username, dateParam)}?${qs.toString()}`,
+    { method: "GET", cache: "no-store" }
+  )
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
     throw new Error(
-      text || JSON.stringify({ message: `Day failed (${dayRes.status})` })
+      text || JSON.stringify({ message: `${kind} failed (${res.status})` })
     )
   }
 
-  if (!postsRes.ok) {
-    const text = await postsRes.text().catch(() => "")
+  const json = await readJsonSafe<any>(res)
+  const list = Array.isArray(json?.data) ? (json.data as T[]) : []
+
+  return {
+    data: list,
+    // trust requested page (prevents server "page: 1" bugs from looping)
+    page,
+    pageSize: Number(json?.pageSize ?? list.length) || list.length,
+    maxPageSize: Number(json?.maxPageSize ?? maxPageSize) || maxPageSize,
+    totalPages: Number(json?.totalPages ?? 1) || 1,
+    totalCount: Number(json?.totalCount ?? list.length) || list.length,
+  }
+}
+
+// posts paged fetch (meta at top level, list at json.data)
+async function fetchPagedPosts(
+  username: string,
+  dateParam: string,
+  page: number,
+  maxPageSize: number
+): Promise<PagedData<any>> {
+  console.log("fetching...")
+  const qs = new URLSearchParams({
+    page: String(page),
+    maxPageSize: String(maxPageSize),
+  })
+
+  const res = await apiFetch(
+    `${API_URL}/${encodeURIComponent(username)}/posts/${encodeURIComponent(
+      dateParam
+    )}?${qs.toString()}`,
+    { method: "GET", cache: "no-store" }
+  )
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
     throw new Error(
-      text || JSON.stringify({ message: `Posts failed (${postsRes.status})` })
+      text || JSON.stringify({ message: `Posts failed (${res.status})` })
     )
   }
 
-  const dayJson = (await dayRes
-    .json()
-    .catch(() => null)) as ApiOk<DayResponse> | null
-  const postsJson = (await postsRes
-    .json()
-    .catch(() => null)) as PostsResponse | null
+  const json = await readJsonSafe<any>(res)
+  const list = Array.isArray(json?.data) ? json.data : []
 
-  const day = dayJson?.data
-  if (!day)
-    throw new Error(JSON.stringify({ message: "Day payload missing data" }))
+  return {
+    data: list,
+    // trust requested page (prevents server "page: 1" bugs from looping)
+    page,
+    pageSize: Number(json?.pageSize ?? list.length) || list.length,
+    maxPageSize: Number(json?.maxPageSize ?? maxPageSize) || maxPageSize,
+    totalPages: Number(json?.totalPages ?? 1) || 1,
+    totalCount: Number(json?.totalCount ?? list.length) || list.length,
+  }
+}
 
-  const posts = Array.isArray(postsJson?.data) ? postsJson!.data : []
+/**
+ * IMPORTANT:
+ * This prevents duplicates if the same page is fetched twice (IntersectionObserver / fast scroll / dev mode),
+ * and it also protects you if the backend overlaps results between pages.
+ */
+function flattenPagesUniqueById<T extends { _id?: any }>(
+  pages: PagedData<T>[] | undefined
+): T[] {
+  if (!pages?.length) return []
 
-  return { day, posts }
+  const map = new Map<string, T>()
+
+  for (const p of pages) {
+    for (const item of p.data ?? []) {
+      const id = item?._id ? String(item._id) : ""
+      if (!id) continue
+      map.set(id, item)
+    }
+  }
+
+  return Array.from(map.values())
+}
+
+/**
+ * Pagination meta should reflect what we ACTUALLY loaded.
+ * Using pages.length makes the UI stable even if server "page" is wrong.
+ */
+function lastMeta<T>(pages: PagedData<T>[] | undefined): PaginationMeta {
+  const last = pages?.[pages.length - 1]
+  const loadedPages = pages?.length ?? 0
+
+  if (!last) {
+    return {
+      page: 1,
+      pageSize: 0,
+      maxPageSize: 5,
+      totalPages: 1,
+      totalCount: 0,
+    }
+  }
+
+  return {
+    page: Math.max(1, loadedPages),
+    pageSize: last.pageSize,
+    maxPageSize: last.maxPageSize,
+    totalPages: last.totalPages,
+    totalCount: last.totalCount,
+  }
 }
 
 export function useUserDay(username: string, dateParam: string) {
-  const key = useMemo(
+  const queryClient = useQueryClient()
+  const baseKey = useMemo(
     () => ["userDay", username, dateParam],
     [username, dateParam]
   )
+  const enabled = !!username && !!dateParam
 
-  const q = useQuery<UserDayBundle, Error>({
-    queryKey: key,
-    queryFn: () => fetchUserDayBundle(username, dateParam),
-    enabled: !!username && !!dateParam,
+  const userQ = useQuery({
+    queryKey: [...baseKey, "user"],
+    queryFn: () => fetchUser(username),
+    enabled,
   })
 
+  const DEFAULT_PAGE_SIZE = 5
+  const POSTS_PAGE_SIZE = 5
+
+  const tasksQ: any = useInfiniteQuery({
+    queryKey: [...baseKey, "tasks"],
+    enabled,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchPagedKind<any>(
+        "task",
+        username,
+        dateParam,
+        Number(pageParam),
+        DEFAULT_PAGE_SIZE
+      ),
+    getNextPageParam: (lastPage, allPages) => {
+      const next = allPages.length + 1
+      return next <= lastPage.totalPages ? next : undefined
+    },
+    refetchOnWindowFocus: false,
+  })
+
+  const notesQ: any = useInfiniteQuery({
+    queryKey: [...baseKey, "notes"],
+    enabled,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchPagedKind<any>(
+        "note",
+        username,
+        dateParam,
+        Number(pageParam),
+        DEFAULT_PAGE_SIZE
+      ),
+    getNextPageParam: (lastPage, allPages) => {
+      const next = allPages.length + 1
+      return next <= lastPage.totalPages ? next : undefined
+    },
+    refetchOnWindowFocus: false,
+  })
+
+  const eventsQ: any = useInfiniteQuery({
+    queryKey: [...baseKey, "events"],
+    enabled,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchPagedKind<any>(
+        "event",
+        username,
+        dateParam,
+        Number(pageParam),
+        DEFAULT_PAGE_SIZE
+      ),
+    getNextPageParam: (lastPage, allPages) => {
+      const next = allPages.length + 1
+      return next <= lastPage.totalPages ? next : undefined
+    },
+    refetchOnWindowFocus: false,
+  })
+
+  const postsQ: any = useInfiniteQuery({
+    queryKey: [...baseKey, "posts"],
+    enabled,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchPagedPosts(username, dateParam, Number(pageParam), POSTS_PAGE_SIZE),
+    getNextPageParam: (lastPage, allPages) => {
+      const next = allPages.length + 1
+      return next <= lastPage.totalPages ? next : undefined
+    },
+    refetchOnWindowFocus: false,
+  })
+
+  const loading =
+    userQ.isLoading ||
+    tasksQ.isLoading ||
+    notesQ.isLoading ||
+    eventsQ.isLoading ||
+    postsQ.isLoading
+
+  const error =
+    (userQ.error && safeApiMessage(userQ.error)) ||
+    (tasksQ.error && safeApiMessage(tasksQ.error)) ||
+    (notesQ.error && safeApiMessage(notesQ.error)) ||
+    (eventsQ.error && safeApiMessage(eventsQ.error)) ||
+    (postsQ.error && safeApiMessage(postsQ.error)) ||
+    null
+
+  const user = userQ.data ?? null
+
+  const tasks = flattenPagesUniqueById(tasksQ.data?.pages)
+  const notes = flattenPagesUniqueById(notesQ.data?.pages)
+  const events = flattenPagesUniqueById(eventsQ.data?.pages)
+  const posts = flattenPagesUniqueById(postsQ.data?.pages)
+
+  const tasksMeta = lastMeta(tasksQ.data?.pages)
+  const notesMeta = lastMeta(notesQ.data?.pages)
+  const eventsMeta = lastMeta(eventsQ.data?.pages)
+  const postsMeta = lastMeta(postsQ.data?.pages)
+
+  const stats = {
+    notesCount: notesMeta.totalCount ?? notes.length,
+    tasksCount: tasksMeta.totalCount ?? tasks.length,
+    eventsCount: eventsMeta.totalCount ?? events.length,
+  }
+
   return {
-    loading: q.isLoading,
-    error: q.error ? safeApiMessage(q.error) : null,
-    day: q.data?.day ?? null,
-    posts: q.data?.posts ?? [],
-    reload: q.refetch,
+    loading,
+    error,
+
+    user,
+    stats,
+
+    tasks,
+    notes,
+    events,
+    posts,
+
+    tasksMeta,
+    notesMeta,
+    eventsMeta,
+    postsMeta,
+
+    loadMoreTasks: () => {
+      if (tasksQ.isFetchingNextPage) return
+      if (!tasksQ.hasNextPage) return
+      return tasksQ.fetchNextPage()
+    },
+    loadMoreNotes: () => {
+      if (notesQ.isFetchingNextPage) return
+      if (!notesQ.hasNextPage) return
+      return notesQ.fetchNextPage()
+    },
+    loadMoreEvents: () => {
+      if (eventsQ.isFetchingNextPage) return
+      if (!eventsQ.hasNextPage) return
+      return eventsQ.fetchNextPage()
+    },
+    loadMorePosts: () => {
+      if (postsQ.isFetchingNextPage) return
+      if (!postsQ.hasNextPage) return
+      return postsQ.fetchNextPage()
+    },
+
+    loadingMoreTasks: tasksQ.isFetchingNextPage,
+    loadingMoreNotes: notesQ.isFetchingNextPage,
+    loadingMoreEvents: eventsQ.isFetchingNextPage,
+    loadingMorePosts: postsQ.isFetchingNextPage,
+
+    hasMoreTasks: !!tasksQ.hasNextPage,
+    hasMoreNotes: !!notesQ.hasNextPage,
+    hasMoreEvents: !!eventsQ.hasNextPage,
+    hasMorePosts: !!postsQ.hasNextPage,
+
+    collapseTasks: () => {
+      queryClient.removeQueries({ queryKey: [...baseKey, "tasks"] })
+    },
+    collapseNotes: () => {
+      queryClient.removeQueries({ queryKey: [...baseKey, "notes"] })
+    },
+    collapseEvents: () => {
+      queryClient.removeQueries({ queryKey: [...baseKey, "events"] })
+    },
+    collapsePosts: () => {
+      queryClient.removeQueries({ queryKey: [...baseKey, "posts"] })
+    },
+
+    reloadAll: () =>
+      Promise.all([
+        userQ.refetch(),
+        tasksQ.refetch(),
+        notesQ.refetch(),
+        eventsQ.refetch(),
+        postsQ.refetch(),
+      ]),
   }
 }

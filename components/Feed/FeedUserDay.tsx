@@ -4,10 +4,11 @@ import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
 import FeedPostItem from "./FeedPostItem"
 import FeedUserDayCard from "./FeedUserDayCard"
-import { MoreHorizontal, Flag, Ban } from "lucide-react"
+import { MoreHorizontal, Flag, Ban, ChevronDown } from "lucide-react"
 import ReportUserModal from "../common/ReportUserModal"
 import BlockUserModal from "../common/BlockUserModal"
 import { useRouter } from "next/navigation"
+import { toDayParam } from "@/lib/date" // ✅ adjust to your real helper path
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
@@ -23,11 +24,22 @@ export default function FeedUserDay({
   const username = userDay.user_info.username
 
   const sortedPosts = useMemo(() => {
-    const list = [...userDay.posts]
+    const list = [...(userDay.posts || [])]
     return list.sort(
       (a: any, b: any) => Number(!!b.highlighted) - Number(!!a.highlighted)
     )
   }, [userDay.posts])
+
+  // ✅ total posts count from API (fallbacks just in case)
+  const postCount = Number(
+    userDay.postCount ??
+      userDay.postsCount ??
+      userDay.totalPosts ??
+      userDay.posts_total ??
+      sortedPosts.length
+  )
+
+  const hasMorePosts = postCount > 3
 
   // menu state
   const [menuOpen, setMenuOpen] = useState(false)
@@ -164,6 +176,24 @@ export default function FeedUserDay({
               isLast={idx === sortedPosts.length - 1}
             />
           ))}
+
+          {hasMorePosts ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                router.push(
+                  `/day/${userDay.user_info.username}?date=${toDayParam(
+                    selectedDate
+                  )}`
+                )
+              }}
+              className="w-full transition px-4 py-1 text-sm text-(--dk-sky) font-medium flex items-center justify-center gap-2 cursor-pointer hover:text-(--dk-sky)/80"
+            >
+              <span>See more</span>
+            </button>
+          ) : null}
         </div>
       </div>
 

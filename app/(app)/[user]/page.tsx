@@ -5,7 +5,7 @@ import { useParams, useRouter, notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
 import ProfileHeader from "@/components/User/UserHeader"
-import UserPosts from "@/components/User/UserPosts"
+import ProfileDay from "@/components/User/ProfileDay"
 import { useUserProfile } from "@/hooks/useUserProfile"
 
 function normalizeUsername(param: unknown) {
@@ -70,7 +70,7 @@ export default function UserPage() {
 
             <div className="h-px bg-(--dk-ink)/10" />
 
-            <UserPosts username={user.username} />
+            <ProfileDay username={user.username} />
           </>
         )}
       </div>
