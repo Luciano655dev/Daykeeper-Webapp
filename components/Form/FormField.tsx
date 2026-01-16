@@ -1,69 +1,119 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import { brand } from "../brand"
 
 type Props = {
   label: string
+  hint?: string
   rightSlot?: React.ReactNode
+
+  multiline?: boolean
+  rows?: number
+
+  maxLength?: number
+  showCount?: boolean
+
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>
+  textareaProps?: React.TextareaHTMLAttributes<HTMLTextAreaElement>
 }
 
-export default function FormField({ label, rightSlot, inputProps }: Props) {
-  const isPassword = inputProps?.type === "password"
+export default function FormField({
+  label,
+  hint,
+  rightSlot,
+  inputProps,
+  textareaProps,
+
+  multiline = false,
+  rows,
+
+  maxLength,
+  showCount = true,
+}: Props) {
+  const isPassword = !multiline && inputProps?.type === "password"
   const [showPassword, setShowPassword] = useState(false)
+
+  const valueLength = useMemo(() => {
+    const v = multiline ? textareaProps?.value : inputProps?.value
+    return typeof v === "string" ? v.length : 0
+  }, [multiline, inputProps?.value, textareaProps?.value])
+
+  const baseClass = [
+    "w-full rounded-xl border px-4 py-3 pr-11 text-sm outline-none transition",
+    "bg-(--dk-paper)",
+    "border-(--dk-ink)/10",
+    "focus:border-(--dk-sky)",
+    "text-(--dk-ink)",
+    multiline ? "resize-none min-h-[140px]" : "",
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (typeof maxLength === "number" && e.target.value.length > maxLength)
+      return
+    inputProps?.onChange?.(e)
+  }
+
+  function handleTextareaChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    if (typeof maxLength === "number" && e.target.value.length > maxLength)
+      return
+    textareaProps?.onChange?.(e)
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium" style={{ color: brand.ink }}>
-          {label}
-        </label>
-        {rightSlot ? rightSlot : null}
+        <label className="text-sm font-medium text-(--dk-ink)">{label}</label>
+
+        <div className="flex items-center gap-3">
+          {typeof maxLength === "number" && showCount && (
+            <div className="text-xs text-(--dk-slate)">
+              {valueLength}/{maxLength}
+            </div>
+          )}
+          {rightSlot}
+        </div>
       </div>
 
       <div className="relative mt-2">
-        <input
-          {...inputProps}
-          type={
-            isPassword ? (showPassword ? "text" : "password") : inputProps?.type
-          }
-          className="w-full rounded-xl border px-4 py-3 pr-11 text-sm outline-none transition"
-          style={{
-            background: brand.paper,
-            borderColor: "rgba(15, 23, 42, 0.12)",
-          }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = brand.sky)}
-          onBlur={(e) =>
-            (e.currentTarget.style.borderColor = "rgba(15, 23, 42, 0.12)")
-          }
-        />
+        {multiline ? (
+          <textarea
+            {...textareaProps}
+            rows={rows ?? 4}
+            maxLength={maxLength}
+            className={baseClass}
+            onChange={handleTextareaChange}
+          />
+        ) : (
+          <input
+            {...inputProps}
+            maxLength={maxLength}
+            type={
+              isPassword
+                ? showPassword
+                  ? "text"
+                  : "password"
+                : inputProps?.type
+            }
+            className={baseClass}
+            onChange={handleInputChange}
+          />
+        )}
 
         {isPassword && (
           <button
             type="button"
-            aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute inset-y-0 right-3 flex items-center"
-            style={{ color: brand.slate }}
+            className="absolute inset-y-0 right-3 flex items-center text-(--dk-slate)"
           >
-            {showPassword ? (
-              <EyeOff
-                size={18}
-                color={brand.slate}
-                style={{ cursor: "pointer" }}
-              />
-            ) : (
-              <Eye
-                size={18}
-                color={brand.slate}
-                style={{ cursor: "pointer" }}
-              />
-            )}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         )}
       </div>
+
+      {hint && <div className="mt-2 text-xs text-(--dk-slate)">{hint}</div>}
     </div>
   )
 }

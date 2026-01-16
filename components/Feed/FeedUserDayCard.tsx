@@ -82,9 +82,8 @@ export default function FeedUserDayCard({ userDay, selectedDate }: any) {
               <span className="inline-flex items-center gap-1.5">
                 <Clock size={14} />
                 <span className="font-semibold text-(--dk-ink)">
-                  {dayMeta.lastUpdateTime}
+                  {dayMeta?.lastUpdateTime?.toLowerCase() || ""}
                 </span>{" "}
-                pm
               </span>
             </>
           ) : null}

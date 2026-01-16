@@ -178,6 +178,7 @@ function ActionButton({
   pulse: boolean
   onClick: () => void
 }) {
+  const router = useRouter()
   const base =
     "w-full sm:w-auto h-10 px-4 rounded-xl text-sm font-medium transition inline-flex items-center justify-center select-none"
 
@@ -186,6 +187,7 @@ function ActionButton({
       <button
         type="button"
         className={`${base} gap-2 bg-(--dk-mist)/35 text-(--dk-ink) hover:bg-(--dk-mist)/55 cursor-pointer`}
+        onClick={() => router.push("profile")}
       >
         <Pencil size={16} className="text-(--dk-slate)" />
         Edit profile
