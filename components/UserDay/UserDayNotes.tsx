@@ -6,6 +6,7 @@ import UserDayListRow from "./UserDayListRow"
 import PrivacyChip from "@/components/common/PrivacyChip"
 import ActionPill from "../common/ActionPill"
 import type { PaginationMeta } from "@/hooks/useUserDay"
+import { useRouter } from "next/navigation"
 
 function formatTime(s?: string) {
   if (!s) return ""
@@ -26,6 +27,7 @@ export default function UserDayNotes({
   loadingMore?: boolean
   onLoadMore?: () => void
 }) {
+  const router = useRouter()
   const PREVIEW_COUNT = 5
 
   const list = useMemo(() => (Array.isArray(notes) ? notes : []), [notes])
@@ -74,6 +76,7 @@ export default function UserDayNotes({
                 <PrivacyChip privacy={n.privacy} />
               </span>
             }
+            onClick={() => router.push(`/day/notes/${n._id}`)}
           />
         ))}
       </div>

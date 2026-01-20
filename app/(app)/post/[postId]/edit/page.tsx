@@ -13,7 +13,7 @@ import FormField from "@/components/Form/FormField"
 import FormButton from "@/components/Form/FormButton"
 import PrivacyPicker, {
   type PrivacyValue,
-} from "@/components/Post/Create/PrivacyPicker"
+} from "@/components/common/PrivacyPicker"
 import EditMediaDropzone from "@/components/Post/Edit/EditMediaDropzone"
 
 const MAX_MEDIA = 5
@@ -87,12 +87,12 @@ export default function EditPostPage() {
 
   const keptExisting = useMemo(
     () => existingMedia.filter((m) => keepMediaIds.has(m._id)),
-    [existingMedia, keepMediaIds]
+    [existingMedia, keepMediaIds],
   )
 
   const totalAfter = useMemo(
     () => keepMediaIds.size + newFiles.length,
-    [keepMediaIds.size, newFiles.length]
+    [keepMediaIds.size, newFiles.length],
   )
 
   function openPicker() {

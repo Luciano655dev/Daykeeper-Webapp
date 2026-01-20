@@ -25,8 +25,8 @@ export default function AvatarPicker({
   const subtitle = avatarResetQueued
     ? "Will reset after you save."
     : avatarFile
-    ? "Will upload after you save."
-    : "Current profile picture."
+      ? "Will upload after you save."
+      : "Current profile picture."
 
   return (
     <section className="w-full">
@@ -34,7 +34,7 @@ export default function AvatarPicker({
       <div className="flex flex-col items-center text-center gap-4">
         {/* Avatar */}
         <div className="w-full flex justify-center">
-          <div className="relative h-36 w-36 sm:h-44 sm:w-44 md:h-52 md:w-52 overflow-hidden rounded-3xl border border-(--dk-ink)/10 bg-(--dk-ink)/5 shadow-sm">
+          <div className="relative h-36 w-36 sm:h-44 sm:w-44 md:h-52 md:w-52 overflow-hidden rounded-xl border border-(--dk-ink)/10 bg-(--dk-ink)/5">
             <Image
               src={avatarSrc}
               alt="Profile picture"

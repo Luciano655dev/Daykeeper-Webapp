@@ -1,16 +1,60 @@
-// components/common/DeletePostModal.tsx
+// components/common/DeleteEntityModal.tsx
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Trash2 } from "lucide-react"
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
 
-type Props = {
-  postId: string
+type DeleteEntityModalProps = {
   open: boolean
   onClose: () => void
   onDeleted?: () => void
+
+  /**
+   * Example: "post" | "note" | "comment" | "task" | "event"
+   * Used in the UI text: "Delete post", "Post deleted", etc.
+   */
+  entityLabel: string
+
+  /**
+   * If you want nice title casing: "post" -> "Post"
+   * Defaults to true.
+   */
+  titleCase?: boolean
+
+  /**
+   * The identifier you want to delete.
+   * Example: postId, noteId, commentId...
+   */
+  entityId: string
+
+  /**
+   * Build the endpoint path (without API_URL).
+   * Example: ({ id }) => `/post/${id}`
+   * Example: ({ id }) => `/day/note/${id}`
+   */
+  buildPath: (args: { id: string }) => string
+
+  /**
+   * Optional custom copy
+   */
+  confirmTitle?: string
+  confirmBody?: React.ReactNode
+  confirmButtonText?: string
+  successTitle?: string
+  successBody?: React.ReactNode
+
+  /**
+   * If the server returns a different shape, you can override how we extract message.
+   */
+  parseErrorMessage?: (payload: any) => string | null
+}
+
+function toTitleCase(s: string) {
+  const t = String(s || "").trim()
+  if (!t) return ""
+  return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
 function safeApiMessage(err: any) {
@@ -31,15 +75,37 @@ function safeApiMessage(err: any) {
   }
 }
 
-export default function DeletePostModal({
-  postId,
+export default function DeleteEntityModal({
   open,
   onClose,
   onDeleted,
-}: Props) {
+
+  entityLabel,
+  titleCase = true,
+  entityId,
+  buildPath,
+
+  confirmTitle,
+  confirmBody,
+  confirmButtonText,
+  successTitle,
+  successBody,
+
+  parseErrorMessage,
+}: DeleteEntityModalProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successOpen, setSuccessOpen] = useState(false)
+
+  const label = useMemo(() => {
+    const base = String(entityLabel || "").trim() || "item"
+    return titleCase ? base.toLowerCase() : base
+  }, [entityLabel, titleCase])
+
+  const labelTitle = useMemo(
+    () => (titleCase ? toTitleCase(label) : label),
+    [label, titleCase],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -61,18 +127,26 @@ export default function DeletePostModal({
     setError(null)
 
     try {
-      const res = await apiFetch(
-        `${API_URL}/post/${encodeURIComponent(postId)}`,
-        {
-          method: "DELETE",
-          cache: "no-store",
-        }
-      )
+      const path = buildPath({ id: String(entityId) })
+      const url = `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`
+
+      const res = await apiFetch(url, {
+        method: "DELETE",
+        cache: "no-store",
+      })
 
       if (!res.ok) {
-        const text = await res.json().catch(() => "")
-        // always throw a string message (not an object) so React never tries to render an object
-        throw new Error(JSON.stringify(text.message))
+        const payload = await res.json().catch(() => null)
+
+        const customMsg = parseErrorMessage?.(payload)
+        const msg =
+          customMsg ||
+          payload?.message ||
+          payload?.error ||
+          `Request failed (${res.status})`
+
+        // always throw a string message so React never tries to render an object
+        throw new Error(JSON.stringify({ message: msg }))
       }
 
       onClose()
@@ -86,6 +160,24 @@ export default function DeletePostModal({
   }
 
   if (!open && !successOpen) return null
+
+  const confirmTitleFinal = confirmTitle || `Delete ${label}`
+  const confirmBodyFinal = confirmBody || (
+    <p className="text-sm text-(--dk-slate)">
+      Delete this {label} permanently?
+      <br />
+      This can’t be undone.
+    </p>
+  )
+
+  const confirmButtonTextFinal = confirmButtonText || `Delete ${label}`
+
+  const successTitleFinal = successTitle || `${labelTitle} deleted`
+  const successBodyFinal = successBody || (
+    <p className="text-sm text-(--dk-slate)">
+      Your {label} was deleted successfully.
+    </p>
+  )
 
   return (
     <>
@@ -101,7 +193,9 @@ export default function DeletePostModal({
               <div className="flex items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
                   <Trash2 size={18} className="text-red-600" />
-                  <h2 className="text-(--dk-ink) font-semibold">Delete post</h2>
+                  <h2 className="text-(--dk-ink) font-semibold">
+                    {confirmTitleFinal}
+                  </h2>
                 </div>
                 <button
                   type="button"
@@ -112,11 +206,7 @@ export default function DeletePostModal({
                 </button>
               </div>
 
-              <p className="text-sm text-(--dk-slate)">
-                Delete this post permanently?
-                <br />
-                This can’t be undone.
-              </p>
+              {confirmBodyFinal}
 
               {error ? (
                 <div className="mt-2 text-sm text-red-600">{error}</div>
@@ -138,7 +228,7 @@ export default function DeletePostModal({
                   disabled={busy}
                   className="px-3 py-2 rounded-xl bg-red-600 text-white text-sm hover:opacity-95 transition disabled:opacity-60"
                 >
-                  {busy ? "Deleting..." : "Delete post"}
+                  {busy ? "Deleting..." : confirmButtonTextFinal}
                 </button>
               </div>
             </div>
@@ -160,12 +250,12 @@ export default function DeletePostModal({
             >
               <div className="flex items-center gap-2 mb-2">
                 <Trash2 size={18} className="text-red-600" />
-                <h2 className="text-(--dk-ink) font-semibold">Post deleted</h2>
+                <h2 className="text-(--dk-ink) font-semibold">
+                  {successTitleFinal}
+                </h2>
               </div>
 
-              <p className="text-sm text-(--dk-slate)">
-                Your post was deleted successfully.
-              </p>
+              {successBodyFinal}
 
               <div className="mt-4 flex justify-end">
                 <button

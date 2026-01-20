@@ -12,7 +12,7 @@ import FormButton from "@/components/Form/FormButton"
 import MediaDropzone from "@/components/Post/Create/MediaDropzone"
 import PrivacyPicker, {
   type PrivacyValue,
-} from "@/components/Post/Create/PrivacyPicker"
+} from "@/components/common/PrivacyPicker"
 
 const MAX_FILES = 5
 
