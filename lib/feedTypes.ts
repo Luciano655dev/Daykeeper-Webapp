@@ -26,6 +26,7 @@ export type FeedPost = {
   comments?: number
   userLiked?: boolean
   userCommented?: any
+  edited_at: any
 }
 
 export function normalizeFeedPayload(json: any): FeedUserDay[] {
@@ -44,7 +45,7 @@ export function normalizeFeedPayload(json: any): FeedUserDay[] {
     userId: String(u.userId ?? u._id ?? ""),
     username: String(u.username ?? u.user?.username ?? u.username ?? ""),
     userHandle: String(
-      u.userHandle ?? u.handle ?? u.username ?? u.username ?? ""
+      u.userHandle ?? u.handle ?? u.username ?? u.username ?? "",
     ),
     profile_picture: u.profile_picture ?? u.user?.profile_picture ?? null,
     posts: Array.isArray(u.posts)
@@ -67,6 +68,7 @@ export function normalizeFeedPayload(json: any): FeedUserDay[] {
           comments: p.comments,
           userLiked: p.userLiked,
           userCommented: p.userCommented,
+          edited_at: p?.edited_at,
         }))
       : [],
   }))

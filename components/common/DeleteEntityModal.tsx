@@ -11,43 +11,19 @@ type DeleteEntityModalProps = {
   onClose: () => void
   onDeleted?: () => void
 
-  /**
-   * Example: "post" | "note" | "comment" | "task" | "event"
-   * Used in the UI text: "Delete post", "Post deleted", etc.
-   */
   entityLabel: string
+  titleCase?: boolean // If true, first letter becomes Uppercase
+  entityId: string //postId, noteId, commentId...
+  buildPath: (args: { id: string }) => string // path to the api
 
-  /**
-   * If you want nice title casing: "post" -> "Post"
-   * Defaults to true.
-   */
-  titleCase?: boolean
-
-  /**
-   * The identifier you want to delete.
-   * Example: postId, noteId, commentId...
-   */
-  entityId: string
-
-  /**
-   * Build the endpoint path (without API_URL).
-   * Example: ({ id }) => `/post/${id}`
-   * Example: ({ id }) => `/day/note/${id}`
-   */
-  buildPath: (args: { id: string }) => string
-
-  /**
-   * Optional custom copy
-   */
+  // Custom copy
   confirmTitle?: string
   confirmBody?: React.ReactNode
   confirmButtonText?: string
   successTitle?: string
   successBody?: React.ReactNode
 
-  /**
-   * If the server returns a different shape, you can override how we extract message.
-   */
+  // optional if the server mess up
   parseErrorMessage?: (payload: any) => string | null
 }
 

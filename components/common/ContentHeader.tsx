@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Clock, MoreHorizontal } from "lucide-react"
+import { Clock, MoreHorizontal, Pencil } from "lucide-react"
 import PrivacyChip from "@/components/common/PrivacyChip"
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
@@ -28,6 +28,7 @@ export type HeaderMenuItem = {
 export default function ContentHeader({
   user,
   stamp,
+  editedDate,
   privacy,
   onUserClick,
   menuItems = [],
@@ -35,6 +36,7 @@ export default function ContentHeader({
 }: {
   user?: HeaderUser | any
   stamp?: string
+  editedDate?: String
   privacy?: any
   onUserClick?: () => void
   menuItems?: HeaderMenuItem[]
@@ -90,6 +92,12 @@ export default function ContentHeader({
                 {stamp}
               </span>
             ) : null}
+            {editedDate && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-(--dk-slate)">
+                <Pencil size={14} className="text-(--dk-slate)" />
+                <span>{editedDate}</span>
+              </span>
+            )}
 
             {privacy ? <PrivacyChip privacy={privacy as any} /> : null}
 

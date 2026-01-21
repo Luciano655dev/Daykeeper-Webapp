@@ -12,6 +12,7 @@ import UserDayListRow from "@/components/UserDay/UserDayListRow"
 import ContentHeader from "@/components/common/ContentHeader"
 import PrivacyChip from "@/components/common/PrivacyChip"
 import DeleteEntityModal from "@/components/common/DeleteEntityModal"
+import formatDDMMYYYY from "@/utils/formatDate"
 
 function formatTime(s?: string) {
   if (!s) return ""
@@ -29,11 +30,15 @@ export default function NotePage() {
 
   const loading = q.isLoading
   const error = q.error ? (q.error as any).message : null
-  const note = q.data ?? null
+  const note: any = q.data ?? null
 
   const user = note?.user_info ?? null
   const stamp = useMemo(
     () => formatTime(note?.dateLocal || note?.date),
+    [note?.dateLocal, note?.date],
+  )
+  const edited = useMemo(
+    () => formatDDMMYYYY(note?.edited_at || ""),
     [note?.dateLocal, note?.date],
   )
 
@@ -92,6 +97,7 @@ export default function NotePage() {
             <ContentHeader
               user={user}
               stamp={stamp}
+              editedDate={edited}
               privacy={note.privacy}
               menuItems={
                 isOwner
@@ -164,9 +170,7 @@ export default function NotePage() {
               onClose={() => setDeleteOpen(false)}
               onDeleted={() => {
                 qc.removeQueries({ queryKey: ["noteDetail", noteId] })
-                // Optional: invalidate user-day caches if you want notes list to refresh elsewhere
-                // qc.invalidateQueries({ queryKey: ["userDay"] })
-
+                qc.invalidateQueries({ queryKey: ["userDay"] })
                 router.back()
               }}
               entityLabel="note"

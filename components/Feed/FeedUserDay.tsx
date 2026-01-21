@@ -26,7 +26,7 @@ export default function FeedUserDay({
   const sortedPosts = useMemo(() => {
     const list = [...(userDay.posts || [])]
     return list.sort(
-      (a: any, b: any) => Number(!!b.highlighted) - Number(!!a.highlighted)
+      (a: any, b: any) => Number(!!b.highlighted) - Number(!!a.highlighted),
     )
   }, [userDay.posts])
 
@@ -36,7 +36,7 @@ export default function FeedUserDay({
       userDay.postsCount ??
       userDay.totalPosts ??
       userDay.posts_total ??
-      sortedPosts.length
+      sortedPosts.length,
   )
 
   const hasMorePosts = postCount > 3
@@ -93,9 +93,7 @@ export default function FeedUserDay({
                 </span>
               </div>
 
-              <p className="text-sm text-(--dk-slate) truncate">
-                @{username} · last update 2h ago
-              </p>
+              <p className="text-sm text-(--dk-slate) truncate">@{username}</p>
             </div>
 
             {/* 3-dots + menu */}
@@ -185,8 +183,8 @@ export default function FeedUserDay({
                 e.stopPropagation()
                 router.push(
                   `/day/${userDay.user_info.username}?date=${toDayParam(
-                    selectedDate
-                  )}`
+                    selectedDate,
+                  )}`,
                 )
               }}
               className="w-full transition px-4 py-1 text-sm text-(--dk-sky) font-medium flex items-center justify-center gap-2 cursor-pointer hover:text-(--dk-sky)/80"

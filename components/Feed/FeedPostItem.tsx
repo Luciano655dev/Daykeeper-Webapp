@@ -1,17 +1,24 @@
 "use client"
 
 import { useMemo, useState, useRef, useEffect } from "react"
-import { Clock, Heart, MessageCircle, MoreHorizontal, Flag } from "lucide-react"
-import type { FeedPost } from "@/lib/feedTypes"
+import {
+  Clock,
+  Heart,
+  MessageCircle,
+  MoreHorizontal,
+  Flag,
+  Pencil,
+} from "lucide-react"
 import FeedPostMediaStrip from "./FeedPostMediaStrip"
 import { apiFetch } from "@/lib/authClient"
 import { useRouter } from "next/navigation"
 import ReportPostModal from "./ReportPostModal"
 import PrivacyChip from "@/components/common/PrivacyChip"
 import { API_URL } from "@/config"
+import formatDDMMYYYY from "@/utils/formatDate"
 
 type Props = {
-  post: FeedPost
+  post: any
   isLast: boolean
 }
 
@@ -110,59 +117,20 @@ export default function FeedPostItem({ post, isLast }: Props) {
         onClick={() => router.push(`/post/${post.id}`)}
       >
         {/* top row */}
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2">
-            <Clock size={14} className="text-(--dk-slate)" />
-            <span className="text-xs font-medium text-(--dk-slate)">
-              {post?.time?.toLowerCase() || ""}
+        <div className="flex items-center gap-2">
+          <Clock size={14} className="text-(--dk-slate)" />
+          <span className="text-xs font-medium text-(--dk-slate)">
+            {post?.time?.toLowerCase() || ""}
+          </span>
+
+          {post?.edited_at && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-(--dk-slate)">
+              <Pencil size={14} className="text-(--dk-slate)" />
+              <span>{formatDDMMYYYY(post.edited_at)}</span>
             </span>
+          )}
 
-            <PrivacyChip privacy={post.privacy} />
-          </div>
-
-          {/* ... menu */}
-          <div ref={menuRef} className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setMenuOpen((v) => !v)
-              }}
-              className="p-1.5 rounded-lg hover:bg-(--dk-ink)/5 text-(--dk-slate) hover:text-(--dk-ink) transition"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              aria-label="Post options"
-            >
-              <MoreHorizontal size={16} />
-            </button>
-
-            {menuOpen ? (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 w-44 rounded-xl border border-(--dk-ink)/10 bg-(--dk-paper) shadow-lg overflow-hidden z-20"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-              >
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setMenuOpen(false)
-                    setReportOpen(true)
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-(--dk-ink)/5 transition text-(--dk-ink)"
-                >
-                  <Flag size={16} />
-                  Report post
-                </button>
-              </div>
-            ) : null}
-          </div>
+          <PrivacyChip privacy={post.privacy} />
         </div>
 
         <p className="text-(--dk-ink) text-[15px] leading-relaxed">

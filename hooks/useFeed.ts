@@ -20,7 +20,7 @@ type FeedResponse = {
 
 async function fetchFeedPage(
   dateParam: string,
-  page: number
+  page: number,
 ): Promise<FeedResponse> {
   const qs = new URLSearchParams({
     date: dateParam,
@@ -60,8 +60,10 @@ export function useFeed(selectedDate: Date) {
   const items: FeedUserDay[] = useMemo(() => {
     const pages = q.data?.pages ?? []
     const all = pages.flatMap(
-      (p) => (normalizeFeedPayload(p) as FeedUserDay[]) ?? []
+      (p) => (normalizeFeedPayload(p) as FeedUserDay[]) ?? [],
     )
+    console.log("all here")
+    console.log(all)
 
     // keep your de-dupe (useful if server shifts paging)
     const map = new Map<string | number, FeedUserDay>()

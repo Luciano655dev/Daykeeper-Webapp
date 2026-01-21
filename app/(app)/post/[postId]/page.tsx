@@ -12,6 +12,7 @@ import DeleteEntityModal from "@/components/common/DeleteEntityModal"
 
 import { usePostDetail } from "@/hooks/usePostDetail"
 import { useMe } from "@/lib/useMe"
+import formatDDMMYYYY from "@/utils/formatDate"
 
 function formatPostedAt(s?: string) {
   if (!s) return ""
@@ -24,7 +25,7 @@ export default function PostPage() {
   const router = useRouter()
   const qc = useQueryClient()
 
-  const q = usePostDetail(postId)
+  const q: any = usePostDetail(postId)
   const me = useMe()
 
   const loading = q.isLoading
@@ -38,6 +39,10 @@ export default function PostPage() {
     !!me?._id && !!user?._id && String(me._id) === String(user._id)
 
   const stamp = useMemo(() => formatPostedAt(postedAt), [postedAt])
+  const edited = useMemo(
+    () => formatDDMMYYYY(q.data?.post?.edited_at ?? ""),
+    [postedAt],
+  )
 
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -77,6 +82,7 @@ export default function PostPage() {
               <ContentHeader
                 user={user}
                 stamp={stamp}
+                editedDate={edited}
                 privacy={post.privacy}
                 menuItems={
                   isOwner

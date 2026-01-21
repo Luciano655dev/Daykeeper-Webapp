@@ -66,6 +66,7 @@ async function fetchPostDetail(postId: string): Promise<PostDetailResult> {
   const post: FeedPost = {
     id: String(raw._id),
     date: raw.date,
+    edited_at: raw?.edited_at ?? "",
     time: "",
     content: String(raw.data || ""),
     media: Array.isArray(raw.media) ? raw.media : [],

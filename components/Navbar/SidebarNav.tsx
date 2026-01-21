@@ -3,16 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  Home,
-  Search,
-  Bell,
-  Mail,
-  PlusSquare,
-  User,
-  Bookmark,
-  Settings,
-} from "lucide-react"
+import { Home, Search, Bell, PlusSquare, User, Settings } from "lucide-react"
 
 import { useMe } from "@/lib/useMe"
 
@@ -20,7 +11,6 @@ const NAV: any = [
   { label: "Feed", href: "/", icon: Home },
   { label: "Search", href: "/search", icon: Search },
   { label: "Notifications", href: "/notifications", icon: Bell },
-  { label: "Bookmarks", href: "/bookmarks", icon: Bookmark },
   { label: "Settings", href: "/settings", icon: Settings },
 ]
 
