@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { Plus } from "lucide-react"
 
 import PostsHeader from "@/components/User/PostsHeader"
 
@@ -39,6 +40,7 @@ export default function ProfileDaySections({ username, className }: Props) {
   const {
     loading,
     error,
+    user,
     stats,
     canView,
 
@@ -120,6 +122,28 @@ export default function ProfileDaySections({ username, className }: Props) {
     () => isSameDay(selectedDate, new Date()),
     [selectedDate]
   )
+  const isSelf = user?.follow_info === "same_user"
+  const dateParamForCreate = useMemo(() => {
+    const d = selectedDate
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, "0")
+    const dd = String(d.getDate()).padStart(2, "0")
+    return `${yyyy}-${mm}-${dd}`
+  }, [selectedDate])
+
+  const addButton = useCallback(
+    (href: string) => (
+      <button
+        type="button"
+        onClick={() => router.push(href)}
+        className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-(--dk-sky)/15 text-(--dk-sky) hover:bg-(--dk-sky)/25 transition"
+        aria-label="Create new"
+      >
+        <Plus size={14} />
+      </button>
+    ),
+    [router]
+  )
 
   // Use real totals from API when available (posts totalCount too)
   const entriesCount =
@@ -165,7 +189,15 @@ export default function ProfileDaySections({ username, className }: Props) {
             </div>
           ) : (
             <>
-              <UserDaySection title="Tasks" count={stats?.tasksCount ?? 0}>
+              <UserDaySection
+                title="Tasks"
+                count={stats?.tasksCount ?? 0}
+                action={
+                  isSelf
+                    ? addButton(`/day/tasks/create?date=${dateParamForCreate}`)
+                    : undefined
+                }
+              >
                 <UserDayTasks
                   tasks={tasks}
                   pagination={tasksMeta}
@@ -176,7 +208,15 @@ export default function ProfileDaySections({ username, className }: Props) {
                 />
               </UserDaySection>
 
-              <UserDaySection title="Notes" count={stats?.notesCount ?? 0}>
+              <UserDaySection
+                title="Notes"
+                count={stats?.notesCount ?? 0}
+                action={
+                  isSelf
+                    ? addButton(`/day/notes/create?date=${dateParamForCreate}`)
+                    : undefined
+                }
+              >
                 <UserDayNotes
                   notes={notes}
                   pagination={notesMeta}
@@ -187,7 +227,15 @@ export default function ProfileDaySections({ username, className }: Props) {
                 />
               </UserDaySection>
 
-              <UserDaySection title="Events" count={stats?.eventsCount ?? 0}>
+              <UserDaySection
+                title="Events"
+                count={stats?.eventsCount ?? 0}
+                action={
+                  isSelf
+                    ? addButton(`/day/events/create?date=${dateParamForCreate}`)
+                    : undefined
+                }
+              >
                 <UserDayEvents
                   events={events}
                   pagination={eventsMeta}
