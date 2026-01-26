@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import FeedHeader from "@/components/Feed/FeedHeader"
 import FeedTimeline from "@/components/Feed/FeedTimeline"
 import { useFeed } from "@/hooks/useFeed"
+import UploadStatusBar from "@/components/Post/UploadStatusBar"
 
 import { toDDMMYYYY, parseDDMMYYYY, isSameDay, startOfDay } from "@/lib/date"
 
@@ -87,6 +88,7 @@ export default function FeedPage() {
     <>
       <main className="pb-20 lg:pb-0">
         <div className="max-w-2xl mx-auto border-x border-(--dk-ink)/10 bg-(--dk-paper) min-h-screen">
+          <UploadStatusBar />
           <FeedHeader
             selectedDate={selectedDate}
             onChangeDate={changeDate}

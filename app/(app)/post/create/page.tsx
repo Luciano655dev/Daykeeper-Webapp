@@ -13,12 +13,14 @@ import MediaDropzone from "@/components/Post/Create/MediaDropzone"
 import PrivacyPicker, {
   type PrivacyValue,
 } from "@/components/common/PrivacyPicker"
+import { useUploadQueue } from "@/lib/uploadQueue"
 
 const MAX_FILES = 5
 
 export default function CreatePostPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const { enqueuePostUpload } = useUploadQueue()
 
   const [data, setData] = useState("")
   const [privacy, setPrivacy] = useState<PrivacyValue>("public")
@@ -74,6 +76,12 @@ export default function CreatePostPage() {
       }
       if (files.length > MAX_FILES) {
         throw new Error(`You can only upload up to ${MAX_FILES} files.`)
+      }
+
+      if (files.length > 0) {
+        enqueuePostUpload({ data, privacy, files })
+        router.back()
+        return
       }
 
       const fd = new FormData()
