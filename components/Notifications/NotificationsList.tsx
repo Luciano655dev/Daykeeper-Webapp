@@ -1,0 +1,193 @@
+"use client"
+
+import { useEffect, useMemo, useRef, type ReactNode } from "react"
+import {
+  Bell,
+  Heart,
+  MessageCircle,
+  UserCheck,
+  UserPlus,
+} from "lucide-react"
+import { useDelayedRender } from "@/hooks/useDelayedRender"
+import type { NotificationItem } from "@/hooks/useNotifications"
+
+const ICONS: Record<string, ReactNode> = {
+  new_follower: <UserPlus size={16} />,
+  follow_request: <UserPlus size={16} />,
+  follow_request_accepted: <UserCheck size={16} />,
+  post_liked: <Heart size={16} />,
+  comment: <MessageCircle size={16} />,
+}
+
+function formatStamp(iso?: string) {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ""
+
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function NotificationRow({
+  item,
+  isNew,
+}: {
+  item: NotificationItem
+  isNew: boolean
+}) {
+  const icon =
+    item.type && ICONS[item.type] ? ICONS[item.type] : <Bell size={16} />
+  const stamp = formatStamp(item.created_at)
+
+  return (
+    <div
+      className={[
+        "flex gap-3 px-4 py-4 border-b border-(--dk-ink)/10 transition hover:bg-(--dk-sky)/8",
+        isNew
+          ? "bg-(--dk-sky)/15 border-l-2 border-(--dk-sky) pl-3"
+          : "bg-(--dk-paper)",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "mt-0.5 flex h-9 w-9 items-center justify-center rounded-full text-(--dk-ink) relative",
+          isNew
+            ? "bg-(--dk-sky)/35 ring-1 ring-(--dk-sky)/50"
+            : "bg-(--dk-ink)/5",
+        ].join(" ")}
+      >
+        {icon}
+        {isNew ? (
+          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-(--dk-ink)" />
+        ) : null}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-(--dk-ink) truncate">
+            {item.title || "Notification"}
+          </p>
+          <span className="text-[11px] text-(--dk-slate) whitespace-nowrap">
+            {stamp}
+          </span>
+        </div>
+
+        {item.body ? (
+          <p className="mt-1 text-sm text-(--dk-slate)">{item.body}</p>
+        ) : null}
+
+        {isNew ? (
+          <div className="mt-2 inline-flex items-center gap-2 text-[11px] text-(--dk-ink)">
+            <span className="px-2 py-0.5 rounded-full bg-(--dk-sky)/30 text-(--dk-ink)">
+              New
+            </span>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+export default function NotificationsList({
+  items,
+  loading,
+  loadingMore,
+  hasMore,
+  error,
+  onLoadMore,
+  onRetry,
+  sessionNewIds,
+}: {
+  items: NotificationItem[]
+  loading: boolean
+  loadingMore: boolean
+  hasMore: boolean
+  error?: string | null
+  onLoadMore: () => void
+  onRetry?: () => void
+  sessionNewIds: Set<string>
+}) {
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const readyToShowSkeleton = useDelayedRender(200)
+  const showSkeleton = loading && readyToShowSkeleton
+
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return
+        if (hasMore && !loadingMore) onLoadMore()
+      },
+      { rootMargin: "600px" }
+    )
+
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [hasMore, loadingMore, onLoadMore])
+
+  const emptyState = useMemo(() => !loading && !error && items.length === 0, [
+    loading,
+    error,
+    items.length,
+  ])
+
+  return (
+    <section className="border-t border-(--dk-ink)/10">
+      {showSkeleton ? (
+        <div className="px-4 py-6 space-y-4 animate-pulse">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={`skeleton-${i}`}
+              className="h-16 rounded-xl bg-(--dk-ink)/5"
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {error && onRetry ? (
+        <div className="px-4 py-4">
+          <button
+            onClick={onRetry}
+            className="text-xs underline text-(--dk-slate) hover:text-(--dk-ink)"
+          >
+            Failed to load notifications. Click to retry.
+          </button>
+        </div>
+      ) : null}
+
+      {emptyState ? (
+        <div className="px-4 py-6 text-sm text-(--dk-slate)">
+          You have no notifications yet.
+        </div>
+      ) : null}
+
+      {items.map((item) => (
+        <NotificationRow
+          key={item._id}
+          item={item}
+          isNew={sessionNewIds.has(item._id)}
+        />
+      ))}
+
+      {loadingMore ? (
+        <div className="px-4 py-4 text-sm text-(--dk-slate)">
+          Loading more…
+        </div>
+      ) : null}
+
+      {!loading && !loadingMore && !hasMore && items.length > 0 ? (
+        <div className="px-4 py-6 text-xs text-(--dk-slate)/80 text-center">
+          You’re all caught up.
+        </div>
+      ) : null}
+
+      <div ref={sentinelRef} className="h-1" />
+    </section>
+  )
+}
