@@ -20,6 +20,7 @@ import UserActionsMenu from "@/components/User/UserActionsMenu"
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
 export default function ProfileHeader({ user }: { user: any }) {
+  const router = useRouter()
   const avatar = user?.profile_picture?.url || AVATAR_FALLBACK
 
   const currentStreak = user?.currentStreak ?? user?.currentStrike ?? 0
@@ -49,6 +50,7 @@ export default function ProfileHeader({ user }: { user: any }) {
   const [busy, setBusy] = useState(false)
 
   const [pulse, setPulse] = useState(false)
+  const canViewFollows = !isPrivate || isFollowing || isSelf
 
   useEffect(() => {
     setIsFollowing(!!user?.isFollowing)
@@ -171,8 +173,26 @@ export default function ProfileHeader({ user }: { user: any }) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-(--dk-slate)">
-        <Stat icon={Users} value={followers} label="followers" />
-        <Stat icon={UserPlus} value={followingCount} label="following" />
+        <Stat
+          icon={Users}
+          value={followers}
+          label="followers"
+          onClick={
+            canViewFollows && handle
+              ? () => router.push(`/${encodeURIComponent(handle)}/followers`)
+              : undefined
+          }
+        />
+        <Stat
+          icon={UserPlus}
+          value={followingCount}
+          label="following"
+          onClick={
+            canViewFollows && handle
+              ? () => router.push(`/${encodeURIComponent(handle)}/following`)
+              : undefined
+          }
+        />
 
         <span className="hidden sm:inline-block h-3 w-px bg-(--dk-ink)/10" />
 
@@ -283,20 +303,40 @@ function Stat({
   value,
   label,
   accent = false,
+  onClick,
 }: {
   icon: React.ComponentType<any>
   value: number
   label: string
   accent?: boolean
+  onClick?: () => void
 }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+  const content = (
+    <>
       <Icon
         size={16}
         className={accent ? "text-(--dk-sky)" : "text-(--dk-slate)"}
       />
       <span className="font-semibold text-(--dk-ink)">{value}</span>
       <span>{label}</span>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex items-center gap-1.5 whitespace-nowrap hover:text-(--dk-ink) transition cursor-pointer"
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+      {content}
     </span>
   )
 }
