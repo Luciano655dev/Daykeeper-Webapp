@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Home, Search, PlusSquare, Bell, User } from "lucide-react"
 
 import { useMe } from "@/lib/useMe"
+import { useNotifications } from "@/hooks/useNotifications"
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/"
@@ -14,6 +15,7 @@ function isActive(pathname: string, href: string) {
 export default function MobileNav() {
   const pathname = usePathname()
   const me = useMe()
+  const { unreadCount } = useNotifications()
 
   const NAV = [
     { href: "/", icon: Home },
@@ -30,6 +32,8 @@ export default function MobileNav() {
           const active = isActive(pathname, item.href)
           const Icon = item.icon
 
+          const showDot = item.href === "/notifications" && unreadCount > 0
+
           return (
             <Link
               key={item.href}
@@ -42,11 +46,16 @@ export default function MobileNav() {
                   : "text-(--dk-slate) hover:text-(--dk-ink)",
               ].join(" ")}
             >
-              <Icon
-                size={24}
-                className={active ? "stroke-[2.4]" : "stroke-2"}
-                {...(active && !item.isCreate ? { fill: "currentColor" } : {})}
-              />
+              <span className="relative">
+                <Icon
+                  size={24}
+                  className={active ? "stroke-[2.4]" : "stroke-2"}
+                  {...(active && !item.isCreate ? { fill: "currentColor" } : {})}
+                />
+                {showDot ? (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-(--dk-sky)" />
+                ) : null}
+              </span>
             </Link>
           )
         })}

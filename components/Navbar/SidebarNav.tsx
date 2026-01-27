@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Home, Search, Bell, PlusSquare, User, Settings } from "lucide-react"
 
 import { useMe } from "@/lib/useMe"
+import { useNotifications } from "@/hooks/useNotifications"
 
 const NAV: any = [
   { label: "Feed", href: "/", icon: Home },
@@ -17,6 +18,7 @@ const NAV: any = [
 export default function SidebarNav() {
   const pathname = usePathname()
   const me = useMe()
+  const { unreadCount } = useNotifications()
 
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 xl:w-72 border-r border-(--dk-ink)/10 bg-(--dk-paper) flex-col">
@@ -43,6 +45,8 @@ export default function SidebarNav() {
               pathname === item.href || pathname.startsWith(item.href + "/")
             const Icon = item.icon
 
+            const showDot = item.href === "/notifications" && unreadCount > 0
+
             return (
               <Link
                 key={item.href}
@@ -54,7 +58,12 @@ export default function SidebarNav() {
                     : "text-(--dk-slate) hover:text-(--dk-ink) hover:bg-[color-mix(in_srgb,var(--dk-mist)_70%,transparent)]",
                 ].join(" ")}
               >
-                <Icon size={22} strokeWidth={active ? 2.6 : 2} />
+                <span className="relative">
+                  <Icon size={22} strokeWidth={active ? 2.6 : 2} />
+                  {showDot ? (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-(--dk-sky)" />
+                  ) : null}
+                </span>
                 <span className={active ? "font-bold" : "font-medium"}>
                   {item.label}
                 </span>

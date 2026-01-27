@@ -31,7 +31,7 @@ export default function SearchUserResultRow({ user }: { user: any }) {
       ].join(" ")}
     >
       <div className="flex items-center gap-3">
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-(--dk-sky)/30 bg-(--dk-mist)">
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-sm border border-(--dk-sky)/30 bg-(--dk-mist)">
           <Image src={avatar} alt="" fill className="object-cover" />
         </div>
 
