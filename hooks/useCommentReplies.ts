@@ -4,26 +4,9 @@ import { useCallback, useMemo } from "react"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
+import type { PostComment } from "@/hooks/usePostComments"
 
-export type PostComment = {
-  _id: string
-  postId?: string
-  parentCommentId?: string | null
-  gif?: string | null
-  user: {
-    _id: string
-    username: string
-    profile_picture?: { url?: string } | null
-    timeZone?: string | null
-  }
-  comment: string
-  created_at: string
-  likesCount?: number
-  repliesCount?: number
-  userLiked?: boolean
-}
-
-type CommentsResponse = {
+type RepliesResponse = {
   data?: PostComment[]
   page?: number
   totalPages?: number
@@ -31,21 +14,18 @@ type CommentsResponse = {
 
 const PAGE_SIZE = 10
 
-async function fetchCommentsPage(
-  postId: string,
+async function fetchRepliesPage(
+  commentId: string,
   page: number
-): Promise<CommentsResponse> {
+): Promise<RepliesResponse> {
   const qs = new URLSearchParams({
     page: String(page),
     maxPageSize: String(PAGE_SIZE),
   })
 
   const res = await apiFetch(
-    `${API_URL}/post/${postId}/comments?${qs.toString()}`,
-    {
-      method: "GET",
-      cache: "no-store",
-    }
+    `${API_URL}/post/comment/${commentId}/replies?${qs.toString()}`,
+    { method: "GET", cache: "no-store" }
   )
 
   if (!res.ok) {
@@ -53,32 +33,27 @@ async function fetchCommentsPage(
     throw new Error(text || `Request failed (${res.status})`)
   }
 
-  return (await res.json().catch(() => ({}))) as CommentsResponse
+  return (await res.json().catch(() => ({}))) as RepliesResponse
 }
 
-export function usePostComments(postId: string | undefined) {
+export function useCommentReplies(commentId: string | undefined, enabled = true) {
   const q = useInfiniteQuery({
-    queryKey: ["postComments", postId],
-    enabled: !!postId,
+    queryKey: ["commentReplies", commentId],
+    enabled: !!commentId && enabled,
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
-      fetchCommentsPage(String(postId), Number(pageParam)),
-
+      fetchRepliesPage(String(commentId), Number(pageParam)),
     getNextPageParam: (lastPage) => {
       const page = lastPage?.page ?? 1
       const totalPages = lastPage?.totalPages
       const count = Array.isArray(lastPage?.data) ? lastPage!.data!.length : 0
 
-      // If API gives totalPages, trust it
       if (typeof totalPages === "number") {
         return page < totalPages ? page + 1 : undefined
       }
 
-      // If totalPages is missing, stop when the server returns less than PAGE_SIZE
       return count < PAGE_SIZE ? undefined : page + 1
     },
-
-    // optional but helps reduce UI thrash
     refetchOnWindowFocus: false,
   })
 
@@ -88,7 +63,6 @@ export function usePostComments(postId: string | undefined) {
   }, [q.data])
 
   const loadMore = useCallback(() => {
-    // super strict guard
     if (!q.hasNextPage) return
     if (q.isFetching || q.isFetchingNextPage) return
     q.fetchNextPage()
@@ -101,7 +75,6 @@ export function usePostComments(postId: string | undefined) {
   return {
     items,
     loading: q.isLoading,
-    loadingFirst: q.isLoading || (q.isFetching && items.length === 0),
     loadingMore: q.isFetchingNextPage,
     error: q.error ? (q.error as any).message : null,
     hasMore: !!q.hasNextPage,

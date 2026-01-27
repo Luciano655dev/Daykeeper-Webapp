@@ -1,7 +1,13 @@
 "use client"
 
 import Image from "next/image"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Heart, MessageCircle, Trash2 } from "lucide-react"
 import type { PostComment } from "@/hooks/usePostComments"
+import { apiFetch } from "@/lib/authClient"
+import { API_URL } from "@/config"
+import { useMe } from "@/lib/useMe"
+import { useCommentReplies } from "@/hooks/useCommentReplies"
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
@@ -23,6 +29,131 @@ function formatRelative(dateStr: string) {
 export default function CommentItem({ c }: { c: PostComment }) {
   const avatar = c.user?.profile_picture?.url || AVATAR_FALLBACK
   const handle = c.user?.username ? `@${c.user.username}` : ""
+  const me = useMe()
+  const isOwner = !!me?._id && me._id === c.user?._id
+
+  const [liked, setLiked] = useState(!!c.userLiked)
+  const [likeCount, setLikeCount] = useState<number>(
+    Number.isFinite(c.likesCount) ? (c.likesCount as number) : 0
+  )
+  const [replyCount, setReplyCount] = useState<number>(
+    Number.isFinite(c.repliesCount) ? (c.repliesCount as number) : 0
+  )
+  const [likeBusy, setLikeBusy] = useState(false)
+  const [replyOpen, setReplyOpen] = useState(false)
+  const [reply, setReply] = useState("")
+  const [replyBusy, setReplyBusy] = useState(false)
+  const [showReplies, setShowReplies] = useState(false)
+  const [localDeleted, setLocalDeleted] = useState(false)
+
+  const replies = useCommentReplies(c._id, showReplies)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !showReplies) return
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return
+        if (replies.hasMore && !replies.loadingMore) replies.loadMore()
+      },
+      { rootMargin: "400px" }
+    )
+
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [showReplies, replies])
+
+  useEffect(() => {
+    setLiked(!!c.userLiked)
+    setLikeCount(
+      Number.isFinite(c.likesCount) ? (c.likesCount as number) : 0
+    )
+    setReplyCount(
+      Number.isFinite(c.repliesCount) ? (c.repliesCount as number) : 0
+    )
+  }, [c.userLiked, c.likesCount, c.repliesCount])
+
+  async function toggleLike() {
+    if (likeBusy) return
+    setLikeBusy(true)
+    setLiked((v) => !v)
+    setLikeCount((v) => (liked ? Math.max(0, v - 1) : v + 1))
+
+    try {
+      const res = await apiFetch(
+        `${API_URL}/post/comment/${encodeURIComponent(c._id)}/like`,
+        { method: "POST" }
+      )
+      if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        throw new Error(text || `Request failed (${res.status})`)
+      }
+    } catch {
+      setLiked((v) => !v)
+      setLikeCount((v) => (liked ? v + 1 : Math.max(0, v - 1)))
+    } finally {
+      setLikeBusy(false)
+    }
+  }
+
+  async function submitReply() {
+    if (!reply.trim() || replyBusy) return
+    setReplyBusy(true)
+
+    try {
+      const res = await apiFetch(
+        `${API_URL}/post/comment/${encodeURIComponent(c._id)}/reply`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ comment: reply.trim() }),
+        }
+      )
+      if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        throw new Error(text || `Request failed (${res.status})`)
+      }
+      setReply("")
+      setReplyOpen(false)
+      setShowReplies(true)
+      setReplyCount((v) => v + 1)
+      replies.reload()
+    } catch {
+    } finally {
+      setReplyBusy(false)
+    }
+  }
+
+  async function deleteComment() {
+    if (!isOwner || likeBusy) return
+    setLikeBusy(true)
+    try {
+      const res = await apiFetch(
+        `${API_URL}/post/comment/${encodeURIComponent(c._id)}`,
+        { method: "DELETE" }
+      )
+      if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        throw new Error(text || `Request failed (${res.status})`)
+      }
+      setLocalDeleted(true)
+    } catch {
+    } finally {
+      setLikeBusy(false)
+    }
+  }
+
+  const relative = useMemo(() => formatRelative(c.created_at), [c.created_at])
+
+  if (localDeleted) {
+    return (
+      <div className="px-4 py-4 border-b border-(--dk-ink)/10 text-sm text-(--dk-slate)">
+        Comment deleted.
+      </div>
+    )
+  }
 
   return (
     <div className="px-4 py-4 border-b border-(--dk-ink)/10">
@@ -42,14 +173,201 @@ export default function CommentItem({ c }: { c: PostComment }) {
             </span>
             <span className="text-sm text-(--dk-slate) truncate">{handle}</span>
             <span className="text-sm text-(--dk-slate)">·</span>
-            <span className="text-sm text-(--dk-slate)">
-              {formatRelative(c.created_at)}
-            </span>
+            <span className="text-sm text-(--dk-slate)">{relative}</span>
           </div>
 
           <p className="mt-1 text-(--dk-ink) text-[15px] leading-relaxed whitespace-pre-wrap">
             {c.comment}
           </p>
+
+          <div className="mt-2 flex items-center gap-4 text-xs text-(--dk-slate)">
+            <button
+              type="button"
+              onClick={toggleLike}
+              disabled={likeBusy}
+              className={[
+                "inline-flex items-center gap-1 transition",
+                liked ? "text-(--dk-sky)" : "hover:text-(--dk-ink)",
+                likeBusy ? "opacity-60" : "",
+              ].join(" ")}
+            >
+              <Heart size={14} fill={liked ? "currentColor" : "none"} />
+              <span>{likeCount}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setReplyOpen((v) => !v)
+              }}
+              className="inline-flex items-center gap-1 hover:text-(--dk-ink) transition"
+            >
+              <MessageCircle size={14} />
+              <span>{replyCount}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowReplies((v) => !v)}
+              className="hover:text-(--dk-ink) transition"
+            >
+              {showReplies ? "Hide replies" : "View replies"}
+            </button>
+
+            {isOwner ? (
+              <button
+                type="button"
+                onClick={deleteComment}
+                className="inline-flex items-center gap-1 text-red-500 hover:text-red-600 transition"
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            ) : null}
+          </div>
+
+          {replyOpen ? (
+            <div className="mt-3">
+              <textarea
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                rows={2}
+                placeholder="Write a reply…"
+                className={[
+                  "w-full rounded-xl border border-(--dk-ink)/10 bg-(--dk-paper)",
+                  "px-3 py-2 text-sm text-(--dk-ink)",
+                  "focus:outline-none focus:ring-2 focus:ring-(--dk-sky)/40",
+                ].join(" ")}
+              />
+              <div className="mt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReplyOpen(false)}
+                  className="text-xs text-(--dk-slate) hover:text-(--dk-ink) transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={submitReply}
+                  disabled={replyBusy || !reply.trim()}
+                  className="px-3 py-1.5 rounded-xl bg-(--dk-sky) text-white text-xs font-medium disabled:opacity-60"
+                >
+                  {replyBusy ? "Posting..." : "Reply"}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {showReplies ? (
+            <div className="mt-4 border-l border-(--dk-ink)/10 pl-4 space-y-3">
+              {replies.loading ? (
+                <div className="text-xs text-(--dk-slate)">Loading replies…</div>
+              ) : replies.items.length === 0 ? (
+                <div className="text-xs text-(--dk-slate)">No replies yet.</div>
+              ) : (
+                replies.items.map((r) => (
+                  <ReplyItem key={r._id} reply={r} />
+                ))
+              )}
+
+              {replies.loadingMore ? (
+                <div className="text-xs text-(--dk-slate)">Loading more…</div>
+              ) : null}
+
+              {!replies.loading &&
+              !replies.loadingMore &&
+              replies.hasMore ? (
+                <button
+                  type="button"
+                  onClick={() => replies.loadMore()}
+                  className="text-xs text-(--dk-sky) hover:text-(--dk-ink) transition"
+                >
+                  Show more replies
+                </button>
+              ) : null}
+
+              <div ref={sentinelRef} className="h-1" />
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ReplyItem({ reply }: { reply: PostComment }) {
+  const [liked, setLiked] = useState(!!reply.userLiked)
+  const [likeCount, setLikeCount] = useState<number>(
+    Number.isFinite(reply.likesCount) ? (reply.likesCount as number) : 0
+  )
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    setLiked(!!reply.userLiked)
+    setLikeCount(
+      Number.isFinite(reply.likesCount) ? (reply.likesCount as number) : 0
+    )
+  }, [reply.userLiked, reply.likesCount])
+
+  async function toggleLike() {
+    if (busy) return
+    setBusy(true)
+    setLiked((v) => !v)
+    setLikeCount((v) => (liked ? Math.max(0, v - 1) : v + 1))
+
+    try {
+      const res = await apiFetch(
+        `${API_URL}/post/comment/${encodeURIComponent(reply._id)}/like`,
+        { method: "POST" }
+      )
+      if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        throw new Error(text || `Request failed (${res.status})`)
+      }
+    } catch {
+      setLiked((v) => !v)
+      setLikeCount((v) => (liked ? v + 1 : Math.max(0, v - 1)))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex items-start gap-2">
+      <Image
+        src={reply.user?.profile_picture?.url || AVATAR_FALLBACK}
+        alt={reply.user?.username || "User"}
+        width={28}
+        height={28}
+        className="h-7 w-7 rounded-md object-cover"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-semibold text-(--dk-ink) text-sm truncate">
+            {reply.user?.username}
+          </span>
+          <span className="text-xs text-(--dk-slate)">
+            {formatRelative(reply.created_at)}
+          </span>
+        </div>
+        <p className="mt-0.5 text-(--dk-ink) text-sm leading-relaxed whitespace-pre-wrap">
+          {reply.comment}
+        </p>
+        <div className="mt-1 flex items-center gap-3 text-xs text-(--dk-slate)">
+          <button
+            type="button"
+            onClick={toggleLike}
+            disabled={busy}
+            className={[
+              "inline-flex items-center gap-1 transition",
+              liked ? "text-(--dk-sky)" : "hover:text-(--dk-ink)",
+              busy ? "opacity-60" : "",
+            ].join(" ")}
+          >
+            <Heart size={12} fill={liked ? "currentColor" : "none"} />
+            <span>{likeCount}</span>
+          </button>
         </div>
       </div>
     </div>
