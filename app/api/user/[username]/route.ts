@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { API_URL } from "@/config"
 
 export async function GET(
-  req: Request,
-  { params }: { params: { username: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ username: string }> }
 ) {
-  const username = decodeURIComponent(params.username || "").replace(/^@/, "")
+  const { username: raw } = await params
+  const username = decodeURIComponent(raw || "").replace(/^@/, "")
 
   const cookieStore = await cookies()
   const refreshToken = cookieStore.get("refreshToken")?.value
