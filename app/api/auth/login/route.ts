@@ -31,10 +31,19 @@ export async function POST(req: Request) {
       )
     }
 
+    const rawUser = data?.user || null
+    const normalizedUser = rawUser
+      ? {
+          ...rawUser,
+          name: rawUser?.username ?? rawUser?.name,
+          displayName: rawUser?.displayName ?? rawUser?.username ?? rawUser?.name,
+        }
+      : null
+
     const out = NextResponse.json(
       {
         message: data?.message,
-        user: data?.user,
+        user: normalizedUser,
         accessToken: data?.accessToken,
       },
       { status: 200 }
