@@ -1,6 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
@@ -19,7 +26,7 @@ function cleanStr(v: string | null) {
   return (v || "").trim()
 }
 
-export default function SearchPage() {
+function SearchPageInner() {
   const router = useRouter()
   const sp = useSearchParams()
 
@@ -155,5 +162,21 @@ export default function SearchPage() {
         ) : null}
       </div>
     </main>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="pb-20 lg:pb-0">
+          <div className="max-w-2xl mx-auto border-x border-(--dk-ink)/10 bg-(--dk-paper) min-h-screen">
+            <div className="px-4 py-6 text-sm text-(--dk-slate)">Loading…</div>
+          </div>
+        </main>
+      }
+    >
+      <SearchPageInner />
+    </Suspense>
   )
 }

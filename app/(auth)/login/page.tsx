@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { Suspense, useMemo, useState } from "react"
 import Link from "next/link"
 import { Chrome } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -19,7 +19,7 @@ import FormFooterLinks from "@/components/Form/FormFooterLinks"
 import FormLegalLinks from "@/components/Form/FormLegalLinks"
 import FormAlert from "@/components/Form/FormAlert"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const message = params.get("message")
@@ -151,5 +151,24 @@ export default function LoginPage() {
       />
       <FormLegalLinks />
     </FormShell>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <FormShell>
+          <FormLogo />
+          <FormCard>
+            <FormHeader title="Welcome back" subtitle="Loading…" />
+            <div className="text-sm text-(--dk-slate)">Preparing…</div>
+          </FormCard>
+          <FormLegalLinks />
+        </FormShell>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }

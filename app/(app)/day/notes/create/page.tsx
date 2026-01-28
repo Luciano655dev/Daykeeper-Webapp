@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -62,7 +62,7 @@ function todayInputs(fromDate?: string | null) {
   return { date: `${yyyy}-${mm}-${dd}`, time: `${hh}:${min}` }
 }
 
-export default function CreateNotePage() {
+function CreateNoteForm() {
   const router = useRouter()
   const sp = useSearchParams()
   const qc = useQueryClient()
@@ -217,5 +217,21 @@ export default function CreateNotePage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function CreateNotePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="pb-20 lg:pb-0">
+          <div className="max-w-2xl mx-auto border-x border-(--dk-ink)/10 bg-(--dk-paper) min-h-screen">
+            <div className="px-4 py-6 text-sm text-(--dk-slate)">Loading…</div>
+          </div>
+        </main>
+      }
+    >
+      <CreateNoteForm />
+    </Suspense>
   )
 }
