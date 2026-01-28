@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { apiFetch } from "@/lib/authClient"
+import { API_URL } from "@/config"
 
 type Me = {
   _id: string
@@ -16,7 +17,7 @@ export function useMe() {
 
     async function load() {
       try {
-        const res = await apiFetch("http://localhost:3001/auth/user")
+        const res = await apiFetch(`${API_URL}/auth/user`)
         if (!res.ok) return
         const data = await res.json()
         if (alive) setMe(data?.user ?? null)

@@ -5,14 +5,18 @@ export default function FormDivider({ text = "or" }: { text?: string }) {
     <div className="flex items-center gap-3 py-1">
       <div
         className="h-px flex-1"
-        style={{ background: "rgba(15, 23, 42, 0.10)" }}
+        style={{
+          background: "color-mix(in srgb, var(--dk-ink) 10%, transparent)",
+        }}
       />
       <div className="text-xs" style={{ color: brand.slate }}>
         {text}
       </div>
       <div
         className="h-px flex-1"
-        style={{ background: "rgba(15, 23, 42, 0.10)" }}
+        style={{
+          background: "color-mix(in srgb, var(--dk-ink) 10%, transparent)",
+        }}
       />
     </div>
   )

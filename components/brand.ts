@@ -1,9 +1,9 @@
 export const brand = {
-  sky: "#74B9FF",
-  ink: "#0F172A",
-  slate: "#334155",
-  mist: "#EAF2FF",
-  paper: "#FFFFFF",
-  error: "7F1D1D",
-  success: "166534",
+  sky: "var(--dk-sky)",
+  ink: "var(--dk-ink)",
+  slate: "var(--dk-slate)",
+  mist: "var(--dk-mist)",
+  paper: "var(--dk-paper)",
+  error: "var(--dk-error)",
+  success: "var(--dk-success)",
 }

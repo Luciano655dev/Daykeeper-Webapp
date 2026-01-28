@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
           {info && <FormAlert>{info}</FormAlert>}
           {error && <FormAlert>{error}</FormAlert>}
 
-          <p className="text-center text-sm" style={{ color: "#334155" }}>
+          <p className="text-center text-sm text-(--dk-slate)">
             Remembered it?{" "}
             <Link href="/login" className="font-medium underline">
               Log in

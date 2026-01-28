@@ -115,8 +115,7 @@ function LoginForm() {
             rightSlot={
               <Link
                 href="/forgot-password"
-                className="text-xs hover:underline"
-                style={{ color: "#334155" }}
+                className="text-xs hover:underline text-(--dk-slate)"
               >
                 Forgot?
               </Link>

@@ -1,21 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { authClient, refreshAccessToken } from "@/lib/authClient"
+import { authClient, refreshAccessToken, logoutClient } from "@/lib/authClient"
 
 export function useAuthBootstrap() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     let alive = true
+    let aborted = false
 
     ;(async () => {
       try {
         if (!authClient.getAccessToken()) {
-          await refreshAccessToken()
+          const refreshed = await refreshAccessToken()
+          if (!refreshed) {
+            await logoutClient("Session expired")
+            aborted = true
+            return
+          }
         }
       } finally {
-        if (alive) setReady(true)
+        if (alive && !aborted) setReady(true)
       }
     })()
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { apiFetch } from "@/lib/authClient"
+import { API_URL } from "@/config"
 
 export default function FetchUserButton() {
   const [loading, setLoading] = useState(false)
@@ -13,7 +14,7 @@ export default function FetchUserButton() {
     setError(null)
 
     try {
-      const res = await apiFetch("http://localhost:3001/auth/user")
+      const res = await apiFetch(`${API_URL}/auth/user`)
 
       if (!res.ok) {
         throw new Error("Failed to fetch user")

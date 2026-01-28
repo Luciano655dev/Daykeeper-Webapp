@@ -11,7 +11,7 @@ export function getAccessToken() {
   return accessToken
 }
 
-async function logoutClient(reason?: string) {
+export async function logoutClient(reason?: string, redirect = true) {
   setAccessToken(null)
   await queryClient.cancelQueries()
   queryClient.clear()
@@ -23,7 +23,9 @@ async function logoutClient(reason?: string) {
     })
   } catch {}
 
-  window.location.href = "/login"
+  if (redirect) {
+    window.location.href = "/login"
+  }
 }
 
 export async function refreshAccessToken(): Promise<string | null> {

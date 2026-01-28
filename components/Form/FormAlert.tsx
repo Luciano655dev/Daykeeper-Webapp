@@ -4,19 +4,19 @@ type Type = "error" | "success" | "info"
 
 const styles: Record<Type, React.CSSProperties> = {
   error: {
-    background: "#FFF5F5",
-    borderColor: "rgba(239, 68, 68, 0.25)",
-    color: "#B91C1C",
+    color: "var(--dk-error)",
+    background: "color-mix(in srgb, var(--dk-error) 12%, var(--dk-paper))",
+    borderColor: "color-mix(in srgb, var(--dk-error) 35%, transparent)",
   },
   success: {
-    background: "#F0FDF4",
-    borderColor: "rgba(34, 197, 94, 0.25)",
-    color: "#15803D",
+    color: "var(--dk-success)",
+    background: "color-mix(in srgb, var(--dk-success) 12%, var(--dk-paper))",
+    borderColor: "color-mix(in srgb, var(--dk-success) 35%, transparent)",
   },
   info: {
-    background: "#EFF6FF",
-    borderColor: "rgba(59, 130, 246, 0.25)",
-    color: "#1D4ED8",
+    color: "var(--dk-sky)",
+    background: "color-mix(in srgb, var(--dk-sky) 12%, var(--dk-paper))",
+    borderColor: "color-mix(in srgb, var(--dk-sky) 35%, transparent)",
   },
 }
 
