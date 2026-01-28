@@ -116,12 +116,14 @@ export default function UserDayTasks({
   hasMore = false,
   loadingMore = false,
   onLoadMore,
+  onCollapse,
 }: {
   tasks?: any[]
   pagination?: PaginationMeta
   hasMore?: boolean
   loadingMore?: boolean
   onLoadMore?: () => void
+  onCollapse?: () => void
 }) {
   const PREVIEW_COUNT = 5
 
@@ -251,7 +253,10 @@ export default function UserDayTasks({
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => setCollapsed(true)}
+            onClick={() => {
+              setCollapsed(true)
+              onCollapse?.()
+            }}
             className="inline-flex items-center gap-1 text-xs font-medium text-(--dk-slate) hover:underline"
           >
             <ChevronUp size={14} />
