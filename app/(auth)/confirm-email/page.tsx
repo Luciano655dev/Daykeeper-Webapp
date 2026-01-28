@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import FormShell from "@/components/Form/FormShell"
@@ -16,7 +16,7 @@ import FormAlert from "@/components/Form/FormAlert"
 
 const RESEND_COOLDOWN = 120 // seconds
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailForm() {
   const router = useRouter()
   const params = useSearchParams()
   const email = (params.get("email") || "").trim().toLowerCase()
@@ -173,5 +173,27 @@ export default function ConfirmEmailPage() {
       />
       <FormLegalLinks />
     </FormShell>
+  )
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <FormShell>
+          <FormLogo />
+          <FormCard>
+            <FormHeader
+              title="Confirm your email"
+              subtitle="Loading…"
+            />
+            <div className="text-sm text-(--dk-slate)">Preparing…</div>
+          </FormCard>
+          <FormLegalLinks />
+        </FormShell>
+      }
+    >
+      <ConfirmEmailForm />
+    </Suspense>
   )
 }
