@@ -165,6 +165,7 @@ export default function CreatePostPage() {
                 rows={4}
                 maxLength={1000}
                 showCount={false}
+                renderPreview={false}
               />
             </div>
           </div>

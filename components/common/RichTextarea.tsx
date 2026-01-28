@@ -11,6 +11,7 @@ type Props = {
   maxLength?: number
   showCount?: boolean
   className?: string
+  renderPreview?: boolean
 }
 
 export default function RichTextarea({
@@ -21,8 +22,36 @@ export default function RichTextarea({
   maxLength,
   showCount = false,
   className,
+  renderPreview = true,
 }: Props) {
   const previewRef = useRef<HTMLDivElement | null>(null)
+
+  if (!renderPreview) {
+    return (
+      <div>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={rows}
+          maxLength={maxLength}
+          className={[
+            "w-full rounded-xl border border-(--dk-ink)/10",
+            "bg-(--dk-paper) px-3 py-2 text-sm leading-relaxed text-(--dk-ink)",
+            "focus:outline-none focus:ring-2 focus:ring-(--dk-sky)/40",
+            "selection:bg-(--dk-sky)/20",
+            className ?? "",
+          ].join(" ")}
+        />
+
+        {showCount && typeof maxLength === "number" ? (
+          <div className="mt-1 text-xs text-(--dk-slate)">
+            {value.length}/{maxLength}
+          </div>
+        ) : null}
+      </div>
+    )
+  }
 
   return (
     <div>
