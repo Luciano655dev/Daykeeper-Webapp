@@ -47,8 +47,17 @@ export default function ContentHeader({
   const [menuOpen, setMenuOpen] = useState(false)
 
   const avatarSrc = user?.profile_picture?.url || AVATAR_FALLBACK
-  const username = user?.username || "unknown"
-  const handle = useMemo(() => `@${username}`, [username])
+  const displayName =
+    user?.displayName ||
+    user?.display_name ||
+    user?.name ||
+    user?.fullName ||
+    user?.username ||
+    "unknown"
+  const handle = useMemo(() => {
+    const uname = user?.username || ""
+    return uname ? `@${uname}` : ""
+  }, [user?.username])
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -81,8 +90,12 @@ export default function ContentHeader({
 
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-(--dk-ink) truncate">{username}</p>
-            <p className="text-sm text-(--dk-slate) truncate">{handle}</p>
+            <p className="font-semibold text-(--dk-ink) truncate">
+              {displayName}
+            </p>
+            {handle ? (
+              <p className="text-sm text-(--dk-slate) truncate">{handle}</p>
+            ) : null}
           </div>
 
           <div className="mt-1 flex items-center gap-2 flex-wrap text-xs text-(--dk-slate)">

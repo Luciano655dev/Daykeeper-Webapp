@@ -6,6 +6,7 @@ import { Heart, MessageCircle } from "lucide-react"
 
 import ContentHeader from "@/components/common/ContentHeader"
 import FeedPostMediaStrip from "@/components/Feed/FeedPostMediaStrip"
+import RichText from "@/components/common/RichText"
 
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
@@ -99,7 +100,7 @@ export default function SearchPostResultCard({ post }: { post: any }) {
       />
 
       <p className="mt-2 text-(--dk-ink) text-[15px] leading-relaxed whitespace-pre-wrap">
-        {content}
+        <RichText text={String(content || "")} />
       </p>
 
       <FeedPostMediaStrip media={post?.media || []} />

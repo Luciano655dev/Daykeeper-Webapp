@@ -19,6 +19,7 @@ import formatDDMMYYYY from "@/utils/formatDate"
 import DeleteEntityModal from "@/components/common/DeleteEntityModal"
 import ReportEntityModal from "@/components/common/ReportEntityModal"
 import { useQueryClient } from "@tanstack/react-query"
+import RichText from "@/components/common/RichText"
 
 type Props = {
   post: any
@@ -208,8 +209,8 @@ export default function FeedPostItem({ post, isLast }: Props) {
           </div>
         </div>
 
-        <p className="mt-2 text-(--dk-ink) text-[15px] leading-relaxed">
-          {post.content}
+        <p className="mt-2 text-(--dk-ink) text-[15px] leading-relaxed whitespace-pre-wrap">
+          <RichText text={String(post.content || "")} />
         </p>
 
         <FeedPostMediaStrip media={post.media} />

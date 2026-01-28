@@ -13,6 +13,7 @@ import ContentHeader from "@/components/common/ContentHeader"
 import PrivacyChip from "@/components/common/PrivacyChip"
 import DeleteEntityModal from "@/components/common/DeleteEntityModal"
 import formatDDMMYYYY from "@/utils/formatDate"
+import RichText from "@/components/common/RichText"
 
 function formatTime(s?: string) {
   if (!s) return ""
@@ -150,7 +151,7 @@ export default function NotePage() {
               leftIcon={<StickyNote size={18} />}
               title={
                 <span className="whitespace-pre-wrap text-sm leading-6">
-                  {note.text}
+                  <RichText text={String(note.text || "")} />
                 </span>
               }
               metaTop={

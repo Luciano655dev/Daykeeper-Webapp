@@ -14,6 +14,7 @@ import UserDayListRow from "./UserDayListRow"
 import PrivacyChip from "@/components/common/PrivacyChip"
 import ActionPill from "../common/ActionPill"
 import type { PaginationMeta } from "@/hooks/useUserDay"
+import RichText from "@/components/common/RichText"
 
 function formatTime(s?: string) {
   if (!s) return ""
@@ -76,7 +77,11 @@ export default function UserDayNotes({
           <UserDayListRow
             key={n._id}
             leftIcon={<StickyNote size={18} />}
-            title={<span className="whitespace-pre-wrap">{n.text}</span>}
+            title={
+              <span className="whitespace-pre-wrap">
+                <RichText text={String(n.text || "")} />
+              </span>
+            }
             metaTop={
               <span className="inline-flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5">

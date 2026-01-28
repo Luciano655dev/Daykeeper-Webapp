@@ -6,6 +6,7 @@ import FeedPostMediaStrip from "@/components/Feed/FeedPostMediaStrip"
 import { apiFetch } from "@/lib/authClient"
 import type { FeedPost } from "@/lib/feedTypes"
 import { API_URL } from "@/config"
+import RichText from "@/components/common/RichText"
 
 type Props = {
   post: FeedPost
@@ -55,7 +56,7 @@ export default function PostDetailCard({ post }: Props) {
         {/* content */}
         <div className="mt-3">
           <p className="text-(--dk-ink) text-[17px] leading-relaxed whitespace-pre-wrap">
-            {post.content}
+            <RichText text={String(post.content || "")} />
           </p>
 
           <FeedPostMediaStrip media={post.media} />

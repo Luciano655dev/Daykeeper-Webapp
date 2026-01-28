@@ -24,6 +24,7 @@ import PrivacyChip from "@/components/common/PrivacyChip"
 import DeleteEntityModal from "@/components/common/DeleteEntityModal"
 import FormAlert from "@/components/Form/FormAlert"
 import formatDDMMYYYY from "@/utils/formatDate"
+import RichText from "@/components/common/RichText"
 
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
@@ -353,7 +354,7 @@ export default function TaskPage() {
                     "transition whitespace-pre-wrap text-sm leading-6",
                   ].join(" ")}
                 >
-                  {task.title}
+                  <RichText text={String(task.title || "")} />
                 </span>
               }
               right={

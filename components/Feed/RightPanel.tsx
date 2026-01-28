@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, Plus, CalendarDays, FileText, CheckSquare2 } from "lucide-react"
+import { Search, Bell, Plus, CalendarDays, FileText, CheckSquare2, EyeOff } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useNotifications } from "@/hooks/useNotifications"
@@ -23,6 +23,20 @@ export default function RightPanel() {
     const dd = String(d.getDate()).padStart(2, "0")
     return `${yyyy}-${mm}-${dd}`
   }, [])
+  const [hideNotifications, setHideNotifications] = useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("dk-hide-notifications")
+      if (raw === "1") setHideNotifications(true)
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("dk-hide-notifications", hideNotifications ? "1" : "0")
+    } catch {}
+  }, [hideNotifications])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -96,16 +110,26 @@ export default function RightPanel() {
         </div>
 
         {/* New notifications */}
-        {unreadCount > 0 ? (
+        {!hideNotifications && unreadCount > 0 ? (
           <div className="bg-(--dk-paper) rounded-2xl border border-(--dk-ink)/10 overflow-hidden">
             <div className="px-4 py-3 border-b border-(--dk-ink)/10 flex items-center justify-between">
               <h2 className="font-bold text-(--dk-ink) text-lg">New</h2>
-              <button
-                onClick={() => router.push("/notifications")}
-                className="text-xs text-(--dk-sky) hover:text-(--dk-ink) transition"
-              >
-                View all
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push("/notifications")}
+                  className="text-xs text-(--dk-sky) hover:text-(--dk-ink) transition"
+                >
+                  View all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHideNotifications(true)}
+                  className="p-1 rounded-md text-(--dk-slate) hover:text-(--dk-ink) hover:bg-(--dk-mist) transition"
+                  aria-label="Hide notifications"
+                >
+                  <EyeOff size={14} />
+                </button>
+              </div>
             </div>
 
             <div className="divide-y divide-(--dk-ink)/10">
@@ -131,18 +155,29 @@ export default function RightPanel() {
         ) : null}
 
         {/* Recent notifications */}
-        <div className="bg-(--dk-paper) rounded-2xl border border-(--dk-ink)/10 overflow-hidden">
-          <div className="px-4 py-3 border-b border-(--dk-ink)/10 flex items-center justify-between">
-            <h2 className="font-bold text-(--dk-ink) text-lg">
-              Notifications
-            </h2>
-            <button
-              onClick={() => router.push("/notifications")}
-              className="text-xs text-(--dk-sky) hover:text-(--dk-ink) transition"
-            >
-              View all
-            </button>
-          </div>
+        {!hideNotifications ? (
+          <div className="bg-(--dk-paper) rounded-2xl border border-(--dk-ink)/10 overflow-hidden">
+            <div className="px-4 py-3 border-b border-(--dk-ink)/10 flex items-center justify-between">
+              <h2 className="font-bold text-(--dk-ink) text-lg">
+                Notifications
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push("/notifications")}
+                  className="text-xs text-(--dk-sky) hover:text-(--dk-ink) transition"
+                >
+                  View all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHideNotifications(true)}
+                  className="p-1 rounded-md text-(--dk-slate) hover:text-(--dk-ink) hover:bg-(--dk-mist) transition"
+                  aria-label="Hide notifications"
+                >
+                  <EyeOff size={14} />
+                </button>
+              </div>
+            </div>
 
           {loading ? (
             <div className="px-4 py-4 text-sm text-(--dk-slate)">
@@ -174,6 +209,15 @@ export default function RightPanel() {
             </div>
           )}
         </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setHideNotifications(false)}
+            className="w-full text-left rounded-2xl border border-(--dk-ink)/10 bg-(--dk-paper) px-4 py-3 text-sm text-(--dk-slate) hover:text-(--dk-ink) hover:bg-(--dk-mist) transition"
+          >
+            Show notifications
+          </button>
+        )}
       </div>
     </aside>
   )

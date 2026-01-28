@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
-import FormField from "@/components/Form/FormField"
+import RichTextarea from "@/components/common/RichTextarea"
 import FormButton from "@/components/Form/FormButton"
 import MediaDropzone from "@/components/Post/Create/MediaDropzone"
 import PrivacyPicker, {
@@ -150,16 +150,24 @@ export default function CreatePostPage() {
             onChange={onFilesSelected}
           />
 
-          <FormField
-            label="Post"
-            multiline
-            maxLength={1000}
-            textareaProps={{
-              value: data,
-              onChange: (e) => setData(e.target.value),
-              placeholder: "What happened today?",
-            }}
-          />
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-(--dk-ink)">Post</label>
+              <div className="text-xs text-(--dk-slate)">
+                {data.length}/1000
+              </div>
+            </div>
+            <div className="mt-2">
+              <RichTextarea
+                value={data}
+                onChange={setData}
+                placeholder="What happened today?"
+                rows={4}
+                maxLength={1000}
+                showCount={false}
+              />
+            </div>
+          </div>
 
           <MediaDropzone
             files={files}

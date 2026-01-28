@@ -7,6 +7,7 @@ type Props = {
   subtitle?: React.ReactNode
   right?: React.ReactNode
   showLane?: boolean
+  alignTop?: boolean
   onClick?: any
 }
 
@@ -17,6 +18,7 @@ export default function UserDayListRow({
   subtitle,
   right,
   showLane = true,
+  alignTop = false,
   onClick = () => {},
 }: Props) {
   return (
@@ -24,7 +26,12 @@ export default function UserDayListRow({
       className="py-3 px-2 -mx-2 rounded-lg hover:bg-(--dk-mist)/50 transition cursor-pointer"
       onClick={onClick}
     >
-      <div className="flex items-center gap-3">
+      <div
+        className={[
+          "flex gap-3",
+          alignTop ? "items-start" : "items-center",
+        ].join(" ")}
+      >
         {/* lane marker + icon */}
         <div className="flex items-center gap-3 shrink-0">
           {showLane ? (

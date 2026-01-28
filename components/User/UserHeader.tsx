@@ -16,6 +16,7 @@ import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
 import { useRouter } from "next/navigation"
 import UserActionsMenu from "@/components/User/UserActionsMenu"
+import RichText from "@/components/common/RichText"
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
@@ -166,7 +167,9 @@ export default function ProfileHeader({ user }: { user: any }) {
 
       <div className="mt-3">
         {bio ? (
-          <p className="text-sm text-(--dk-ink)/85 leading-relaxed">{bio}</p>
+          <p className="text-sm text-(--dk-ink)/85 leading-relaxed whitespace-pre-wrap">
+            <RichText text={bio} />
+          </p>
         ) : (
           <p className="text-sm text-(--dk-slate)">No bio yet.</p>
         )}

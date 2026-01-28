@@ -14,6 +14,7 @@ import PrivacyChip from "@/components/common/PrivacyChip"
 import ActionPill from "../common/ActionPill"
 import type { PaginationMeta } from "@/hooks/useUserDay"
 import { useRouter } from "next/navigation"
+import RichText from "@/components/common/RichText"
 
 function pad2(n: number) {
   return String(n).padStart(2, "0")
@@ -124,7 +125,7 @@ export default function UserDayEvents({
             <UserDayListRow
               key={ev._id}
               leftIcon={<CalendarDays size={18} />}
-              title={ev.title}
+              title={<RichText text={String(ev.title || "")} />}
               onClick={() => router.push(`/day/events/${ev._id}`)}
               metaTop={
                 <div className="flex items-center gap-2 flex-wrap min-w-0">

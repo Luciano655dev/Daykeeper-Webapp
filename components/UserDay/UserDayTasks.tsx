@@ -19,6 +19,7 @@ import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
 import { useQueryClient } from "@tanstack/react-query"
 import { useMe } from "@/lib/useMe"
+import RichText from "@/components/common/RichText"
 
 type ApiOk<T> = { message?: string; data?: T }
 
@@ -296,7 +297,7 @@ export default function UserDayTasks({
                       "transition",
                     ].join(" ")}
                   >
-                    {t.title}
+                    <RichText text={String(t.title || "")} />
                   </span>
                 }
                 right={

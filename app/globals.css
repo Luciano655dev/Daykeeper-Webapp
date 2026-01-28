@@ -9,21 +9,36 @@
 }
 
 :root[data-theme="dark"] {
-  --dk-sky: #74b9ff;
-  --dk-ink: #e2e8f0;
-  --dk-slate: #94a3b8;
-  --dk-mist: #0f172a;
-  --dk-paper: #020617;
+  --dk-sky: #60a5fa;
+  --dk-ink: #e5e7eb;
+  --dk-slate: #9ca3af;
+  --dk-mist: #111827;
+  --dk-paper: #0b0f14;
 }
 
 html {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 body {
   background-color: var(--dk-paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+summary,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
 }
 
 /* Auth Provider Stuff */

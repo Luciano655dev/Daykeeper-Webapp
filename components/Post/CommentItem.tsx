@@ -8,6 +8,8 @@ import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
 import { useMe } from "@/lib/useMe"
 import { useCommentReplies } from "@/hooks/useCommentReplies"
+import RichText from "@/components/common/RichText"
+import RichTextarea from "@/components/common/RichTextarea"
 
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
@@ -177,7 +179,7 @@ export default function CommentItem({ c }: { c: PostComment }) {
           </div>
 
           <p className="mt-1 text-(--dk-ink) text-[15px] leading-relaxed whitespace-pre-wrap">
-            {c.comment}
+            <RichText text={String(c.comment || "")} />
           </p>
 
           <div className="mt-2 flex items-center gap-4 text-xs text-(--dk-slate)">
@@ -228,16 +230,11 @@ export default function CommentItem({ c }: { c: PostComment }) {
 
           {replyOpen ? (
             <div className="mt-3">
-              <textarea
+              <RichTextarea
                 value={reply}
-                onChange={(e) => setReply(e.target.value)}
+                onChange={setReply}
                 rows={2}
                 placeholder="Write a reply…"
-                className={[
-                  "w-full rounded-xl border border-(--dk-ink)/10 bg-(--dk-paper)",
-                  "px-3 py-2 text-sm text-(--dk-ink)",
-                  "focus:outline-none focus:ring-2 focus:ring-(--dk-sky)/40",
-                ].join(" ")}
               />
               <div className="mt-2 flex items-center justify-end gap-2">
                 <button
@@ -352,7 +349,7 @@ function ReplyItem({ reply }: { reply: PostComment }) {
           </span>
         </div>
         <p className="mt-0.5 text-(--dk-ink) text-sm leading-relaxed whitespace-pre-wrap">
-          {reply.comment}
+          <RichText text={String(reply.comment || "")} />
         </p>
         <div className="mt-1 flex items-center gap-3 text-xs text-(--dk-slate)">
           <button

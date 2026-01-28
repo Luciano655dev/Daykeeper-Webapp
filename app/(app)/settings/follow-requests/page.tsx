@@ -10,6 +10,7 @@ import { API_URL } from "@/config"
 import { useFollowRequests } from "@/hooks/useFollowRequests"
 import FormAlert from "@/components/Form/FormAlert"
 import { AVATAR_FALLBACK } from "@/components/Search/searchUtils"
+import RichText from "@/components/common/RichText"
 
 export default function FollowRequestsPage() {
   const router = useRouter()
@@ -145,7 +146,7 @@ export default function FollowRequestsPage() {
                             {title}
                           </div>
                           <div className="mt-0.5 line-clamp-2 text-xs text-(--dk-slate)">
-                            {subtitle || "No bio yet"}
+                            <RichText text={subtitle || "No bio yet"} />
                           </div>
                         </div>
 

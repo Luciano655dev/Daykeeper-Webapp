@@ -5,6 +5,7 @@ import CommentItem from "./CommentItem"
 import { usePostComments } from "@/hooks/usePostComments"
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
+import RichTextarea from "@/components/common/RichTextarea"
 
 export default function CommentsSection({ postId }: { postId: string }) {
   const {
@@ -101,16 +102,11 @@ export default function CommentsSection({ postId }: { postId: string }) {
         {formError ? (
           <div className="mb-2 text-xs text-red-500">{formError}</div>
         ) : null}
-        <textarea
+        <RichTextarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={setText}
           rows={2}
           placeholder="Add a comment…"
-          className={[
-            "w-full rounded-xl border border-(--dk-ink)/10 bg-(--dk-paper)",
-            "px-3 py-2 text-sm text-(--dk-ink)",
-            "focus:outline-none focus:ring-2 focus:ring-(--dk-sky)/40",
-          ].join(" ")}
         />
         <div className="mt-2 flex items-center justify-end gap-2">
           <button

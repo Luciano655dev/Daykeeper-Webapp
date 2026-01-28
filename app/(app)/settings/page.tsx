@@ -7,6 +7,7 @@ import {
   Ban,
   Lock,
   LogOut,
+  Monitor,
   Moon,
   Shield,
   Smartphone,
@@ -197,7 +198,7 @@ export default function SettingsPage() {
                         ) : m === "dark" ? (
                           <Moon size={16} />
                         ) : (
-                          <span className="inline-block h-3 w-3 rounded-full bg-(--dk-sky)" />
+                          <Monitor size={16} />
                         )}
                         {m}
                       </span>

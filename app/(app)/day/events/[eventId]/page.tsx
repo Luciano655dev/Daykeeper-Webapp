@@ -21,6 +21,7 @@ import ContentHeader from "@/components/common/ContentHeader"
 import PrivacyChip from "@/components/common/PrivacyChip"
 import DeleteEntityModal from "@/components/common/DeleteEntityModal"
 import formatDDMMYYYY from "@/utils/formatDate"
+import RichText from "@/components/common/RichText"
 
 function pad2(n: number) {
   return String(n).padStart(2, "0")
@@ -210,11 +211,11 @@ export default function EventPage() {
               title={
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-(--dk-ink) truncate">
-                    {ev.title}
+                    <RichText text={String(ev.title || "")} />
                   </div>
                   {ev.description ? (
                     <div className="mt-1 whitespace-pre-wrap text-sm leading-6 text-(--dk-ink)">
-                      {ev.description}
+                      <RichText text={String(ev.description || "")} />
                     </div>
                   ) : null}
                 </div>

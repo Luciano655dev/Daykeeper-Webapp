@@ -72,8 +72,27 @@ function titleFor(item: any, type: "Note" | "Event" | "Task") {
         {item?.text ?? item?.data ?? ""}
       </span>
     )
-  if (type === "Event") return item?.title || "Event"
+  if (type === "Event")
+    return (
+      item?.title ||
+      item?.name ||
+      item?.data?.title ||
+      item?.data?.name ||
+      "Event"
+    )
   return item?.title || item?.name || "Task"
+}
+
+function subtitleFor(item: any, type: "Note" | "Event" | "Task") {
+  if (type !== "Event") return null
+  return (
+    item?.description ||
+    item?.details ||
+    item?.body ||
+    item?.text ||
+    item?.data?.description ||
+    ""
+  )
 }
 
 function hrefFor(item: any, type: "Note" | "Event" | "Task") {
@@ -101,7 +120,11 @@ export default function SearchDayKindRow({
     item?.created_at || item?.createdAt || item?.dateCreated || item?.date
   const stamp = useMemo(() => formatPostedAt(createdISO), [createdISO])
 
-  const privacy = item?.privacy || item?.status
+  const privacy =
+    item?.privacy ||
+    item?.status ||
+    (item?.private === true ? "private" : undefined) ||
+    (item?.closeFriends || item?.close_friends ? "close friends" : undefined)
 
   const href = hrefFor(item, type)
 
@@ -147,22 +170,23 @@ export default function SearchDayKindRow({
 
   // row meta top like your UserDay rows
   const metaTop =
-    type === "Event" ? (
-      <span className="inline-flex items-center gap-2 flex-wrap min-w-0">
-        <span className="inline-flex items-center gap-1.5 text-xs text-(--dk-slate) shrink-0">
-          {formatTime(createdISO)}
-        </span>
-        <div className="shrink-0">
-          <PrivacyChip privacy={privacy} />
-        </div>
-      </span>
-    ) : (
+    type === "Event" ? null : (
       <span className="inline-flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5">
           {formatTime(item?.dateLocal || item?.date || createdISO)}
         </span>
         <PrivacyChip privacy={privacy} />
       </span>
+    )
+
+  const rowTitle =
+    type === "Event" ? (
+      <span className="inline-flex items-center gap-2 min-w-0">
+        <span className="truncate">{titleFor(item, type)}</span>
+        <PrivacyChip privacy={privacy} />
+      </span>
+    ) : (
+      titleFor(item, type)
     )
 
   return (
@@ -194,9 +218,11 @@ export default function SearchDayKindRow({
       <div className="mt-2">
         <UserDayListRow
           leftIcon={leftIconFor(type)}
-          title={titleFor(item, type)}
+          title={rowTitle}
+          subtitle={subtitleFor(item, type) || undefined}
           metaTop={metaTop}
           right={right || undefined}
+          alignTop={type === "Event"}
           onClick={() => {
             if (href) router.push(href)
           }}
