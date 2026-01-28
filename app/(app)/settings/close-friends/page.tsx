@@ -61,6 +61,12 @@ export default function CloseFriendsPage() {
         const text = await res.text().catch(() => "")
         throw new Error(text || "Failed to update close friends")
       }
+      const data = await res.json().catch(() => null)
+      console.log("close_friends response", {
+        username,
+        status: res.status,
+        data,
+      })
       setRemovedUsernames((prev) => {
         const next = new Set(prev)
         if (next.has(username)) next.delete(username)

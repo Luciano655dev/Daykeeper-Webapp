@@ -86,6 +86,12 @@ export default function UserActionsMenu({
         const text = await res.text().catch(() => "")
         throw new Error(text || `Request failed (${res.status})`)
       }
+      const data = await res.json().catch(() => null)
+      console.log("close_friends response", {
+        username: name,
+        status: res.status,
+        data,
+      })
     } catch {
       setIsInCloseFriends(prev)
     } finally {
