@@ -104,14 +104,14 @@ export default function FeedHeader({
     <div className="sticky top-0 bg-(--dk-paper)/95 backdrop-blur-md border-b border-(--dk-ink)/10 z-10">
       <div className="h-1 w-full bg-(--dk-sky)/70" />
 
-      <div className="px-4 py-4">
+      <div className="px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-3">
           <button
             onClick={() => onChangeDate(-1)}
-            className="p-2 hover:bg-(--dk-mist) rounded-lg transition cursor-pointer"
+            className="p-1.5 sm:p-2 hover:bg-(--dk-mist) rounded-lg transition cursor-pointer"
             aria-label="Previous day"
           >
-            <ChevronLeft size={20} className="text-(--dk-slate)" />
+            <ChevronLeft size={18} className="text-(--dk-slate)" />
           </button>
 
           <div className="flex-1 text-center relative" ref={popoverRef}>
@@ -122,10 +122,10 @@ export default function FeedHeader({
               aria-label="Pick a date"
               aria-expanded={open}
             >
-              <p className="text-sm font-semibold text-(--dk-ink)">
+              <p className="text-[13px] sm:text-sm font-semibold text-(--dk-ink)">
                 {formatDate(selectedDate)}
               </p>
-              <p className="text-xs text-(--dk-slate)">
+              <p className="text-[12px] sm:text-xs text-(--dk-slate)">
                 {selectedDate.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -178,15 +178,15 @@ export default function FeedHeader({
 
           <button
             onClick={() => onChangeDate(1)}
-            className="p-2 hover:bg-(--dk-mist) rounded-lg transition disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+            className="p-1.5 sm:p-2 hover:bg-(--dk-mist) rounded-lg transition disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
             aria-label="Next day"
             disabled={isToday}
           >
-            <ChevronRight size={20} className="text-(--dk-slate)" />
+            <ChevronRight size={18} className="text-(--dk-slate)" />
           </button>
         </div>
 
-        <div className="mt-3 flex items-center justify-center gap-3">
+        <div className="mt-2 sm:mt-3 flex items-center justify-center gap-3">
           {loading ? (
             <span className="text-xs text-(--dk-slate)">Loading…</span>
           ) : error ? (
@@ -197,7 +197,7 @@ export default function FeedHeader({
               Failed to load. Click to retry.
             </button>
           ) : (
-            <span className="text-xs text-(--dk-slate)">
+            <span className="text-xs text-(--dk-slate) hidden sm:inline">
               {usersCount} users posted
             </span>
           )}

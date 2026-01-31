@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Heart, MessageCircle, Trash2 } from "lucide-react"
+import { Heart, Trash2 } from "lucide-react"
 import type { PostComment } from "@/hooks/usePostComments"
 import { apiFetch } from "@/lib/authClient"
 import { API_URL } from "@/config"
@@ -216,25 +216,24 @@ export default function CommentItem({ c }: { c: PostComment }) {
               onClick={() => {
                 setReplyOpen((v) => !v)
               }}
-              className="inline-flex items-center gap-1 hover:text-(--dk-sky) transition"
+              className="text-xs hover:text-(--dk-sky) transition"
               style={{ color: "var(--dk-slate)" }}
             >
-              <MessageCircle
-                size={14}
-                className="transition"
-                style={{ color: "var(--dk-slate)" }}
-              />
-              <span>{replyCount}</span>
+              Reply
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowReplies((v) => !v)}
-              className="hover:text-(--dk-sky) transition"
-              style={{ color: "var(--dk-slate)" }}
-            >
-              {showReplies ? "Hide replies" : "View replies"}
-            </button>
+            {replyCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => setShowReplies((v) => !v)}
+                className="hover:text-(--dk-sky) transition"
+                style={{ color: "var(--dk-slate)" }}
+              >
+                {showReplies
+                  ? "Hide replies"
+                  : `Show replies (${replyCount})`}
+              </button>
+            ) : null}
 
             {isOwner ? (
               <button

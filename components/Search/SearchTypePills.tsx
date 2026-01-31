@@ -27,7 +27,7 @@ export default function SearchTypePills({
   const types: SearchType[] = ["Post", "User", "Event", "Note", "Task"]
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto whitespace-nowrap -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible scrollbar-none">
       {types.map((t) => {
         const active = t === value
         return (

@@ -127,13 +127,6 @@ function SearchPageInner() {
               onFollowingChange={(v) => setParam({ following: v || null })}
             />
           </div>
-
-          <div className="px-4 pb-3 text-center">
-            <div className="rounded-2xl border border-(--dk-sky)/30 bg-(--dk-sky)/10 px-3 py-2 text-xs text-(--dk-ink)">
-              Tip: use <span className="font-semibold">friends</span> to search
-              only your circle.
-            </div>
-          </div>
         </div>
 
         {search.loadingFirst ? <SearchResultsSkeleton /> : null}

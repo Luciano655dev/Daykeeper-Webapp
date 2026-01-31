@@ -60,3 +60,11 @@ input:disabled {
 .animate-fade-in {
   animation: fade-in 0.35s ease-out both;
 }
+/* Hide scrollbars for horizontal pill rows */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

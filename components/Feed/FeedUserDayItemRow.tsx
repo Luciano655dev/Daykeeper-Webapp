@@ -96,7 +96,7 @@ export default function FeedUserDayItemRow({
           )
           if (!startText) return null
           return (
-            <div className="flex items-center justify-end min-w-0 max-w-full">
+            <div className="hidden sm:flex items-center justify-end min-w-0 max-w-full">
               <div
                 className={[
                   "inline-flex items-center gap-2",
@@ -148,7 +148,30 @@ export default function FeedUserDayItemRow({
             </span>
           )
 
-  const subtitle = item.type === "event" ? item.description || "" : undefined
+  const subtitle =
+    item.type === "event"
+      ? (() => {
+          const { startText, endText } = formatEventTimeRange(
+            item.dateStart || item.date,
+            item.dateEnd,
+          )
+          const rangeText = startText
+            ? `${startText}${endText ? ` → ${endText}` : ""}`
+            : ""
+          return (
+            <span className="block">
+              {rangeText ? (
+                <span className="block text-xs text-(--dk-slate) sm:hidden">
+                  {rangeText}
+                </span>
+              ) : null}
+              {item.description ? (
+                <span className="block">{item.description}</span>
+              ) : null}
+            </span>
+          )
+        })()
+      : undefined
 
   return (
     <div className="relative">
