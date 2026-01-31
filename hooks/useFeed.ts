@@ -62,9 +62,6 @@ export function useFeed(selectedDate: Date) {
     const all = pages.flatMap(
       (p) => (normalizeFeedPayload(p) as FeedUserDay[]) ?? [],
     )
-    console.log("all here")
-    console.log(all)
-
     // keep your de-dupe (useful if server shifts paging)
     const map = new Map<string | number, FeedUserDay>()
     for (const it of all) map.set(it.userId, it)

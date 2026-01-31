@@ -1,0 +1,193 @@
+"use client"
+
+import { useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { StickyNote, CalendarDays, ClipboardList, CheckSquare2, Square } from "lucide-react"
+
+import type { FeedUserDayItem } from "@/lib/feedTypes"
+import UserDayListRow from "@/components/UserDay/UserDayListRow"
+import PrivacyChip from "@/components/common/PrivacyChip"
+
+function formatTime(iso?: string) {
+  if (!iso) return ""
+  const d = new Date(iso)
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0")
+}
+
+function weekKey(d: Date) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  const day = x.getDay()
+  x.setDate(x.getDate() - day)
+  return x.toISOString().slice(0, 10)
+}
+
+function formatShortWeekdayTime(d: Date) {
+  const weekday = d.toLocaleDateString([], { weekday: "short" })
+  const hh = pad2(d.getHours())
+  const mm = pad2(d.getMinutes())
+  return `${weekday} ${hh}:${mm}`
+}
+
+function formatFullDDMMYYYYTime(d: Date) {
+  const dd = pad2(d.getDate())
+  const mm = pad2(d.getMonth() + 1)
+  const yyyy = d.getFullYear()
+  const hh = pad2(d.getHours())
+  const min = pad2(d.getMinutes())
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}`
+}
+
+function formatEventTimeRange(startISO?: string, endISO?: string) {
+  const start = startISO ? new Date(startISO) : null
+  const end = endISO ? new Date(endISO) : null
+  if (!start) return { startText: "", endText: "" }
+
+  const crossesWeek = !!end && weekKey(start) !== weekKey(end)
+  const fmt = crossesWeek ? formatFullDDMMYYYYTime : formatShortWeekdayTime
+
+  return { startText: fmt(start), endText: end ? fmt(end) : "" }
+}
+
+function iconFor(type: FeedUserDayItem["type"]) {
+  if (type === "note") return <StickyNote size={18} />
+  if (type === "event") return <CalendarDays size={18} />
+  return <ClipboardList size={20} />
+}
+
+export default function FeedUserDayItemRow({
+  item,
+  isLast,
+}: {
+  item: FeedUserDayItem
+  isLast: boolean
+}) {
+  const router = useRouter()
+
+  const href = useMemo(() => {
+    const id = encodeURIComponent(String(item.id || ""))
+    if (!id) return null
+    if (item.type === "note") return `/day/notes/${id}`
+    if (item.type === "event") return `/day/events/${id}`
+    if (item.type === "task") return `/day/tasks/${id}`
+    return null
+  }, [item.id, item.type])
+
+  const metaTop =
+    item.type === "event" ? null : (
+      <span className="inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5">
+          {formatTime(item.date || item.time)}
+        </span>
+        <PrivacyChip privacy={item.privacy} />
+      </span>
+    )
+
+  const right =
+    item.type === "event"
+      ? (() => {
+          const { startText, endText } = formatEventTimeRange(
+            item.dateStart || item.date,
+            item.dateEnd,
+          )
+          if (!startText) return null
+          return (
+            <div className="flex items-center justify-end min-w-0 max-w-full">
+              <div
+                className={[
+                  "inline-flex items-center gap-2",
+                  "rounded-xl border border-(--dk-ink)/10 bg-(--dk-mist)/35",
+                  "px-2.5 py-1 text-xs",
+                  "max-w-full min-w-0",
+                  "flex-wrap sm:flex-nowrap",
+                ].join(" ")}
+              >
+                <span className="font-semibold text-(--dk-ink) whitespace-nowrap">
+                  {startText}
+                </span>
+                {endText ? (
+                  <>
+                    <span className="text-(--dk-slate)/70 shrink-0">→</span>
+                    <span className="font-semibold text-(--dk-ink) whitespace-nowrap">
+                      {endText}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          )
+        })()
+      : item.type === "task"
+        ? (() => {
+            const done = !!item.completed
+            const Icon = done ? CheckSquare2 : Square
+            return (
+              <div className="inline-flex items-center justify-center h-9 w-9 rounded-xl border transition bg-(--dk-paper)/60 border-(--dk-ink)/10 text-(--dk-slate)">
+                <Icon
+                  size={18}
+                  className={done ? "text-(--dk-sky)" : "text-(--dk-slate)"}
+                />
+              </div>
+            )
+          })()
+        : null
+
+  const title =
+    item.type === "note"
+      ? item.text || ""
+      : item.type === "task"
+        ? item.title || "Task"
+        : (
+            <span className="inline-flex items-center gap-2 min-w-0">
+              <span className="truncate">{item.title || "Event"}</span>
+              <PrivacyChip privacy={item.privacy} />
+            </span>
+          )
+
+  const subtitle = item.type === "event" ? item.description || "" : undefined
+
+  return (
+    <div className="relative">
+      {/* dot */}
+      <div
+        className="absolute top-5 w-3 h-3 rounded-full bg-(--dk-sky) shadow-sm"
+        style={{ left: 0, transform: "translateX(-50%)" }}
+      />
+
+      {/* connector */}
+      {!isLast ? (
+        <div
+          className="absolute top-8 w-px bg-(--dk-sky)/40"
+          style={{
+            left: 0,
+            transform: "translateX(-50%)",
+            height: "calc(100% + 1rem)",
+          }}
+        />
+      ) : null}
+
+      <div
+        className="ml-8 bg-(--dk-paper)/70 rounded-xl p-3 hover:bg-(--dk-paper)/90 transition border border-(--dk-ink)/10"
+        onClick={() => {
+          if (href) router.push(href)
+        }}
+      >
+        <UserDayListRow
+          leftIcon={iconFor(item.type)}
+          title={title}
+          subtitle={subtitle}
+          metaTop={metaTop}
+          right={right || undefined}
+          alignTop={item.type === "event"}
+          onClick={() => {
+            if (href) router.push(href)
+          }}
+        />
+      </div>
+    </div>
+  )
+}

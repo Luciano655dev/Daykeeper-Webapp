@@ -3,13 +3,13 @@
 import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
 import FeedPostItem from "./FeedPostItem"
+import FeedUserDayItemRow from "./FeedUserDayItemRow"
 import FeedUserDayCard from "./FeedUserDayCard"
 import { MoreHorizontal, Flag, Ban } from "lucide-react"
 import BlockUserModal from "../common/BlockUserModal"
 import ReportEntityModal from "@/components/common/ReportEntityModal"
 import { useRouter } from "next/navigation"
 import { toDayParam } from "@/lib/date"
-
 const AVATAR_FALLBACK = "/avatar-placeholder.png"
 
 export default function FeedUserDay({
@@ -24,19 +24,18 @@ export default function FeedUserDay({
   const username = userDay.user_info.username
   const displayName = userDay?.user_info?.displayName
 
-  const posts = useMemo(() => {
-    return userDay.posts
-  }, [userDay.posts])
+  const items = useMemo(() => {
+    return userDay.data || []
+  }, [userDay.data])
 
-  const postCount = Number(
-    userDay.postCount ??
-      userDay.postsCount ??
-      userDay.totalPosts ??
-      userDay.posts_total ??
-      posts.length,
+  const totalItems = Number(
+    (userDay.postsCount ?? 0) +
+      (userDay.notesCount ?? 0) +
+      (userDay.tasksCount ?? 0) +
+      (userDay.eventsCount ?? 0),
   )
 
-  const hasMorePosts = postCount > 3
+  const hasMoreItems = (totalItems || items.length) > items.length
 
   // menu state
   const [menuOpen, setMenuOpen] = useState(false)
@@ -164,15 +163,23 @@ export default function FeedUserDay({
         <FeedUserDayCard userDay={userDay} selectedDate={selectedDate} />
 
         <div className="space-y-4">
-          {posts.map((post: any, idx: any) => (
-            <FeedPostItem
-              key={post.id}
-              post={post}
-              isLast={idx === posts.length - 1}
-            />
-          ))}
+          {items.map((item: any, idx: any) =>
+            item?.type === "post" ? (
+              <FeedPostItem
+                key={item.id}
+                post={item}
+                isLast={idx === items.length - 1}
+              />
+            ) : (
+              <FeedUserDayItemRow
+                key={`${item.type}-${item.id}`}
+                item={item}
+                isLast={idx === items.length - 1}
+              />
+            ),
+          )}
 
-          {hasMorePosts ? (
+          {hasMoreItems ? (
             <button
               type="button"
               onClick={(e) => {

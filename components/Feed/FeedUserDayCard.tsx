@@ -5,7 +5,13 @@ import { CheckSquare, Calendar, List, Clock } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toDayParam } from "@/lib/date"
 
-export default function FeedUserDayCard({ userDay, selectedDate }: any) {
+export default function FeedUserDayCard({
+  userDay,
+  selectedDate,
+}: {
+  userDay: any
+  selectedDate?: Date
+}) {
   const router = useRouter()
   // dummy day meta (replace with API fields later)
   const dayMeta = useMemo(() => {
@@ -17,13 +23,23 @@ export default function FeedUserDayCard({ userDay, selectedDate }: any) {
       lastUpdateTime: userDay?.lastPostTime || "12:00",
     }
     return obj
-  }, [userDay.posts.length])
+  }, [
+    userDay?.postsCount,
+    userDay?.tasksCount,
+    userDay?.eventsCount,
+    userDay?.notesCount,
+    userDay?.lastPostTime,
+  ])
 
   function openDay() {
     // you can decide your route format later
     // example: /day/2026-01-07?user=USER_ID
+    const username = userDay?.user_info?.username
+    if (!username) return
+
+    const dateParam = selectedDate ? toDayParam(selectedDate) : null
     router.push(
-      `/${userDay.user_info.username}?date=${toDayParam(selectedDate)}`,
+      dateParam ? `/${username}?date=${dateParam}` : `/${username}`,
     )
   }
   return (

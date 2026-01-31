@@ -61,7 +61,7 @@ export default function FeedHeader({
   const [open, setOpen] = useState(false)
 
   const [draftISO, setDraftISO] = useState(() =>
-    toISODateInputValue(selectedDate)
+    toISODateInputValue(selectedDate),
   )
 
   const popoverRef = useRef<HTMLDivElement | null>(null)
